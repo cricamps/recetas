@@ -1,0 +1,40 @@
+/**
+ * Tarjeta de estadística pequeña
+ */
+@Composable
+fun StatCard(
+    icon: String,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.height(100.dp),  // Aumentado de 90 a 100
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),  // Reducido de 12 a 8
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = icon, fontSize = 28.sp)  // Aumentado de 24 a 28
+            Spacer(modifier = Modifier.height(2.dp))  // Reducido de 4 a 2
+            Text(
+                text = value,
+                fontSize = 22.sp,  // Aumentado de 20 a 22
+                fontWeight = FontWeight.Bold,
+                color = ChileanRed
+            )
+            Text(
+                text = label,
+                fontSize = 11.sp,  // Reducido de 12 a 11
+                color = TextMuted,
+                maxLines = 1  // Asegura una sola línea
+            )
+        }
+    }
+}
