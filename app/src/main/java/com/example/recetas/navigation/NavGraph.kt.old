@@ -1,0 +1,96 @@
+package com.example.recetas.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.recetas.ui.screens.LoginScreen
+import com.example.recetas.ui.screens.RecetasScreen
+
+/**
+ * Grafo de navegación de la aplicación
+ * Define la estructura de navegación y las transiciones entre pantallas
+ * 
+ * Implementa Navigation Component de Jetpack Compose según guía Semana 2
+ * 
+ * @param navController Controlador de navegación
+ * @param isDarkTheme Estado del tema oscuro/claro
+ * @param onThemeChange Función para cambiar el tema
+ * 
+ * @author Cristobal Camps
+ * @date Enero 2026
+ */
+@Composable
+fun NavGraph(
+    navController: NavHostController,
+    isDarkTheme: Boolean,
+    onThemeChange: () -> Unit
+) {
+    NavHost(
+        navController = navController,
+        startDestination = NavRoutes.Login.route
+    ) {
+        // Pantalla de Login (destino de inicio)
+        composable(route = NavRoutes.Login.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    // Navegar a la pantalla de recetas
+                    navController.navigate(NavRoutes.Recetas.route) {
+                        // Remover login del back stack
+                        popUpTo(NavRoutes.Login.route) { inclusive = true }
+                    }
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange
+            )
+        }
+        
+        // Pantalla de Recetas
+        composable(route = NavRoutes.Recetas.route) {
+            RecetasScreen(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onRecetaClick = { recetaId ->
+                    // Navegar al detalle de la receta
+                    navController.navigate(NavRoutes.DetalleReceta.createRoute(recetaId))
+                },
+                onAgregarReceta = {
+                    // Navegar a agregar receta
+                    navController.navigate(NavRoutes.AgregarReceta.route)
+                }
+            )
+        }
+        
+        // Pantalla de Detalle de Receta
+        composable(
+            route = NavRoutes.DetalleReceta.route,
+            arguments = listOf(
+                navArgument("recetaId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val recetaId = backStackEntry.arguments?.getString("recetaId") ?: ""
+            // TODO: Implementar DetalleRecetaScreen
+            // DetalleRecetaScreen(
+            //     recetaId = recetaId,
+            //     onBack = { navController.popBackStack() },
+            //     isDarkTheme = isDarkTheme,
+            //     onThemeChange = onThemeChange
+            // )
+        }
+        
+        // Pantalla de Agregar Receta
+        composable(route = NavRoutes.AgregarReceta.route) {
+            // TODO: Implementar AgregarRecetaScreen
+            // AgregarRecetaScreen(
+            //     onBack = { navController.popBackStack() },
+            //     onRecetaGuardada = {
+            //         navController.popBackStack()
+            //     },
+            //     isDarkTheme = isDarkTheme,
+            //     onThemeChange = onThemeChange
+            // )
+        }
+    }
+}

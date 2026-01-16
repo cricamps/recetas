@@ -1,0 +1,38 @@
+package com.example.recetas.navigation
+
+/**
+ * Rutas de navegación de la aplicación
+ * Define todas las pantallas disponibles en la app
+ * 
+ * Según guía Semana 2: Navegación en aplicaciones móviles Android
+ * - Destino de inicio fijo: Login
+ * - Pila de actividades: Historial de navegación
+ * - Vínculos directos: Navegación manual entre pantallas
+ * 
+ * @author Cristobal Camps
+ * @date Enero 2026
+ */
+sealed class NavRoutes(val route: String) {
+    /**
+     * Pantalla de inicio de sesión (DESTINO DE INICIO)
+     */
+    object Login : NavRoutes("login")
+    
+    /**
+     * Pantalla principal con lista de recetas
+     */
+    object Recetas : NavRoutes("recetas")
+    
+    /**
+     * Pantalla de detalle de una receta específica
+     * @param recetaId ID de la receta a mostrar
+     */
+    object DetalleReceta : NavRoutes("detalle/{recetaId}") {
+        fun createRoute(recetaId: String) = "detalle/$recetaId"
+    }
+    
+    /**
+     * Pantalla para agregar nueva receta
+     */
+    object AgregarReceta : NavRoutes("agregar")
+}
