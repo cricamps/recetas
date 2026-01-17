@@ -18,7 +18,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.recetas.accessibility.FontScale
+import com.example.recetas.accessibility.FontSizeButton
 import com.example.recetas.accessibility.hablarTexto
+import com.example.recetas.accessibility.scaledSp
 import com.example.recetas.data.Receta
 import com.example.recetas.data.RecetasRepository
 
@@ -31,9 +34,12 @@ import com.example.recetas.data.RecetasRepository
  * - FloatingActionButton: Botón para agregar nueva receta
  * - TextField: Barra de búsqueda
  * - IconButton: Favoritos y cambio de tema
+ * - FontSizeButton: Control de tamaño de fuente
  * 
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
  * @param onRecetaClick Callback cuando se selecciona una receta
  * @param onAgregarReceta Callback para agregar nueva receta
  */
@@ -42,6 +48,8 @@ import com.example.recetas.data.RecetasRepository
 fun RecetasScreen(
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit,
     onRecetaClick: (String) -> Unit,
     onAgregarReceta: () -> Unit
 ) {
@@ -64,6 +72,12 @@ fun RecetasScreen(
                     ) 
                 },
                 actions = {
+                    // Botón de tamaño de fuente
+                    FontSizeButton(
+                        currentScale = fontScale,
+                        onScaleChange = onFontScaleChange
+                    )
+                    
                     // Botón para cambiar tema
                     IconButton(onClick = onThemeChange) {
                         Text(
@@ -223,11 +237,11 @@ fun RecetaCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = receta.nombre,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
+                    text = receta.nombre,
+                    fontSize = 20.scaledSp(),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
                     )
                     
                     // Botón TTS para decir el nombre de la receta
@@ -249,7 +263,7 @@ fun RecetaCard(
                 // Descripción
                 Text(
                     text = receta.descripcion,
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.scaledSp(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
                 

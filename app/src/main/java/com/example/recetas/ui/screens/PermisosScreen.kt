@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.example.recetas.accessibility.FontScale
+import com.example.recetas.accessibility.FontSizeButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -34,9 +36,12 @@ import kotlinx.coroutines.launch
  * - Switch: Para permisos optativos
  * - Text: Títulos y descripciones
  * - Icon (emoji): Representación visual
+ * - FontSizeButton: Control de tamaño de fuente
  * 
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
  * @param onPermissionsGranted Callback cuando los permisos obligatorios son concedidos
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +49,8 @@ import kotlinx.coroutines.launch
 fun PermisosScreen(
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit,
     onPermissionsGranted: () -> Unit
 ) {
     val context = LocalContext.current
@@ -129,6 +136,12 @@ fun PermisosScreen(
                     ) 
                 },
                 actions = {
+                    // Botón de tamaño de fuente
+                    FontSizeButton(
+                        currentScale = fontScale,
+                        onScaleChange = onFontScaleChange
+                    )
+                    
                     IconButton(onClick = onThemeChange) {
                         Text(
                             text = if (isDarkTheme) "☀️" else "🌙",

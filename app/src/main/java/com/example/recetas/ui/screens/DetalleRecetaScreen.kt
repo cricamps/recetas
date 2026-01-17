@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.recetas.accessibility.FontScale
+import com.example.recetas.accessibility.FontSizeButton
 import com.example.recetas.accessibility.SpeechManager
 import com.example.recetas.accessibility.hablarTexto
 import com.example.recetas.data.RecetasRepository
@@ -28,10 +30,13 @@ import com.example.recetas.data.RecetasRepository
  * - Card: Para secciones de ingredientes y preparación
  * - Column con scroll vertical
  * - Divider: Separadores visuales
+ * - FontSizeButton: Control de tamaño de fuente
  * 
  * @param recetaId ID de la receta a mostrar
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
  * @param onNavigateBack Callback para volver atrás
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +45,8 @@ fun DetalleRecetaScreen(
     recetaId: String,
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -107,6 +114,13 @@ fun DetalleRecetaScreen(
                                 MaterialTheme.colorScheme.onSurface
                         )
                     }
+                    
+                    // Botón de tamaño de fuente
+                    FontSizeButton(
+                        currentScale = fontScale,
+                        onScaleChange = onFontScaleChange
+                    )
+                    
                     // Botón de tema
                     IconButton(onClick = onThemeChange) {
                         Text(

@@ -40,9 +40,12 @@ import com.example.recetas.accessibility.*
  * ✅ Descripciones semánticas para TalkBack
  * ✅ Validación en tiempo real al perder foco
  * ✅ Diseño profesional y atractivo
+ * ✅ Tamaño de fuente ajustable
  * 
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
  * @param onLoginSuccess Callback cuando el login es exitoso
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +53,8 @@ import com.example.recetas.accessibility.*
 fun LoginScreen(
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit,
     onLoginSuccess: () -> Unit
 ) {
     val context = LocalContext.current
@@ -155,6 +160,12 @@ fun LoginScreen(
             TopAppBar(
                 title = { },
                 actions = {
+                    // Botón de tamaño de fuente
+                    FontSizeButton(
+                        currentScale = fontScale,
+                        onScaleChange = onFontScaleChange
+                    )
+                    
                     IconButton(
                         onClick = {
                             hapticFeedback(context)
@@ -219,7 +230,7 @@ fun LoginScreen(
                 // Título de bienvenida
                 Text(
                     text = "Bienvenido/a",
-                    style = MaterialTheme.typography.headlineMedium,
+                    fontSize = 28.scaledSp(),
                     fontWeight = FontWeight.Bold,
                     color = if (isDarkTheme) Color.White else Color(0xFF4A4A4A),
                     modifier = Modifier.semantics {
@@ -229,7 +240,7 @@ fun LoginScreen(
                 
                 Text(
                     text = "Inicia sesión para ver tus recetas favoritas",
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 16.scaledSp(),
                     color = if (isDarkTheme) Color.LightGray else Color.Gray,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -256,7 +267,7 @@ fun LoginScreen(
                     ) {
                         Text(
                             text = "Inicia con Email",
-                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 18.scaledSp(),
                             fontWeight = FontWeight.SemiBold,
                             color = if (isDarkTheme) Color.LightGray else Color.Gray,
                             modifier = Modifier.padding(bottom = 24.dp)
@@ -495,7 +506,7 @@ fun LoginScreen(
                         ) {
                             Text(
                                 text = "Iniciar Sesión",
-                                fontSize = 16.sp,
+                                fontSize = 18.scaledSp(),
                                 fontWeight = FontWeight.Bold
                             )
                         }

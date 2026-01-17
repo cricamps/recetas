@@ -9,7 +9,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import com.example.recetas.accessibility.FontScale
+import com.example.recetas.accessibility.FontScaleManager
+import com.example.recetas.accessibility.LocalFontScale
 import com.example.recetas.navigation.NavigationGraph
 import com.example.recetas.ui.theme.RecetasTheme
 
@@ -66,6 +70,7 @@ import com.example.recetas.ui.theme.RecetasTheme
  * Características implementadas:
  * ==============================
  * ✅ Tema oscuro/claro configurable
+ * ✅ Tamaño de fuente ajustable (5 niveles)
  * ✅ Navegación entre múltiples pantallas
  * ✅ Paso de parámetros (ID de receta)
  * ✅ Búsqueda de recetas
@@ -73,6 +78,8 @@ import com.example.recetas.ui.theme.RecetasTheme
  * ✅ Diseño responsivo y adaptable
  * ✅ Iconografía y emojis descriptivos
  * ✅ Documentación completa del código
+ * ✅ Text-to-Speech completo
+ * ✅ Accesibilidad visual completa
  * 
  * @author Cristobal Camps
  * @course DSY2204 - Desarrollo de Aplicaciones Móviles
@@ -84,21 +91,36 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val context = LocalContext.current
+            
             // Estado global para controlar el tema (claro/oscuro)
-            // Se mantiene durante toda la sesión de la app
             val isDarkTheme = remember { mutableStateOf(false) }
             
-            // Aplicar el tema de la aplicación
+            // Estado global para la escala de fuente
+            // Cargar la preferencia guardada al iniciar
+            val fontScale = remember { 
+                mutableStateOf(FontScaleManager.loadScale(context)) 
+            }
+            
+            // Aplicar el tema de la aplicación con soporte de escala de fuente
             RecetasTheme(darkTheme = isDarkTheme.value) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    // Iniciar la aplicación con el sistema de navegación
-                    RecetasApp(
-                        isDarkTheme = isDarkTheme,
-                        onThemeChange = { isDarkTheme.value = !isDarkTheme.value }
-                    )
+                // Proveer la escala de fuente a toda la app
+                CompositionLocalProvider(LocalFontScale provides fontScale) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        // Iniciar la aplicación con el sistema de navegación
+                        RecetasApp(
+                            isDarkTheme = isDarkTheme,
+                            onThemeChange = { isDarkTheme.value = !isDarkTheme.value },
+                            fontScale = fontScale,
+                            onFontScaleChange = { newScale ->
+                                fontScale.value = newScale
+                                FontScaleManager.saveScale(context, newScale)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -118,11 +140,15 @@ class MainActivity : ComponentActivity() {
  * 
  * @param isDarkTheme Estado mutable del tema oscuro/claro
  * @param onThemeChange Función para alternar el tema
+ * @param fontScale Estado mutable de la escala de fuente
+ * @param onFontScaleChange Función para cambiar la escala de fuente
  */
 @Composable
 fun RecetasApp(
     isDarkTheme: MutableState<Boolean>,
-    onThemeChange: () -> Unit
+    onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit
 ) {
     // Crear el NavController - API principal de Navigation
     // rememberNavController() asegura que se mantenga durante recomposiciones
@@ -132,6 +158,8 @@ fun RecetasApp(
     NavigationGraph(
         navController = navController,
         isDarkTheme = isDarkTheme,
-        onThemeChange = onThemeChange
+        onThemeChange = onThemeChange,
+        fontScale = fontScale,
+        onFontScaleChange = onFontScaleChange
     )
 }

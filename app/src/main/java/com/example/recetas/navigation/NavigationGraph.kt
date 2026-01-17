@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.recetas.accessibility.FontScale
 import com.example.recetas.ui.screens.PermisosScreen
 import com.example.recetas.ui.screens.LoginScreen
 import com.example.recetas.ui.screens.RecetasScreen
@@ -20,12 +21,16 @@ import com.example.recetas.ui.screens.AgregarRecetaScreen
  * @param navController Controlador de navegación
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
  */
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
     isDarkTheme: MutableState<Boolean>,
-    onThemeChange: () -> Unit
+    onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -36,6 +41,8 @@ fun NavigationGraph(
             PermisosScreen(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
+                fontScale = fontScale,
+                onFontScaleChange = onFontScaleChange,
                 onPermissionsGranted = {
                     // Navegar a Login después de conceder permisos
                     navController.navigate(Screen.Login.route) {
@@ -51,6 +58,8 @@ fun NavigationGraph(
             LoginScreen(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
+                fontScale = fontScale,
+                onFontScaleChange = onFontScaleChange,
                 onLoginSuccess = {
                     // Navegar a la pantalla de recetas al hacer login
                     navController.navigate(Screen.Recetas.route) {
@@ -66,6 +75,8 @@ fun NavigationGraph(
             RecetasScreen(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
+                fontScale = fontScale,
+                onFontScaleChange = onFontScaleChange,
                 onRecetaClick = { recetaId ->
                     // Navegar al detalle de la receta seleccionada
                     navController.navigate(Screen.DetalleReceta.createRoute(recetaId))
@@ -89,6 +100,8 @@ fun NavigationGraph(
                 recetaId = recetaId,
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
+                fontScale = fontScale,
+                onFontScaleChange = onFontScaleChange,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
