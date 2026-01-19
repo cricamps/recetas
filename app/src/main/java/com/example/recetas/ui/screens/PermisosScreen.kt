@@ -20,6 +20,8 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.FontSizeButton
+import com.example.recetas.accessibility.ContrastMode
+import com.example.recetas.accessibility.ContrastModeControl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -42,6 +44,8 @@ import kotlinx.coroutines.launch
  * @param onThemeChange Callback para cambiar el tema
  * @param fontScale Estado de la escala de fuente
  * @param onFontScaleChange Callback para cambiar la escala de fuente
+ * @param contrastMode Estado del modo de contraste
+ * @param onContrastModeChange Callback para cambiar el modo de contraste
  * @param onPermissionsGranted Callback cuando los permisos obligatorios son concedidos
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +55,8 @@ fun PermisosScreen(
     onThemeChange: () -> Unit,
     fontScale: MutableState<FontScale>,
     onFontScaleChange: (FontScale) -> Unit,
+    contrastMode: MutableState<ContrastMode>,
+    onContrastModeChange: (ContrastMode) -> Unit,
     onPermissionsGranted: () -> Unit
 ) {
     val context = LocalContext.current
@@ -136,6 +142,13 @@ fun PermisosScreen(
                     ) 
                 },
                 actions = {
+                    // Control de contraste
+                    ContrastModeControl(
+                        contrastMode = contrastMode.value,
+                        onContrastModeChange = onContrastModeChange,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    
                     // Botón de tamaño de fuente
                     FontSizeButton(
                         currentScale = fontScale,

@@ -20,10 +20,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.FontSizeButton
+import com.example.recetas.accessibility.ContrastMode
+import com.example.recetas.accessibility.ContrastModeControl
 import com.example.recetas.accessibility.hablarTexto
 import com.example.recetas.accessibility.scaledSp
 import com.example.recetas.data.Receta
 import com.example.recetas.data.RecetasRepository
+import androidx.navigation.NavController
+import com.example.recetas.voice.rememberVoiceNavigationManager
+import com.example.recetas.voice.VoiceNavigationIconButton
 
 /**
  * Pantalla principal que muestra la lista de recetas chilenas.
@@ -40,16 +45,21 @@ import com.example.recetas.data.RecetasRepository
  * @param onThemeChange Callback para cambiar el tema
  * @param fontScale Estado de la escala de fuente
  * @param onFontScaleChange Callback para cambiar la escala de fuente
+ * @param contrastMode Estado del modo de contraste
+ * @param onContrastModeChange Callback para cambiar el modo de contraste
  * @param onRecetaClick Callback cuando se selecciona una receta
  * @param onAgregarReceta Callback para agregar nueva receta
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecetasScreen(
+    navController: NavController,
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
     fontScale: MutableState<FontScale>,
     onFontScaleChange: (FontScale) -> Unit,
+    contrastMode: MutableState<ContrastMode>,
+    onContrastModeChange: (ContrastMode) -> Unit,
     onRecetaClick: (String) -> Unit,
     onAgregarReceta: () -> Unit
 ) {
@@ -60,6 +70,30 @@ fun RecetasScreen(
     val recetas = remember(searchQuery) {
         RecetasRepository.searchRecetas(searchQuery)
     }
+    
+    // Gestor de navegación por voz
+    val voiceManager = rememberVoiceNavigationManager(
+        navController = navController,
+        onThemeChange = onThemeChange,
+        onFontScaleIncrease = {
+            val currentIndex = FontScale.entries.indexOf(fontScale.value)
+            if (currentIndex < FontScale.entries.size - 1) {
+                onFontScaleChange(FontScale.entries[currentIndex + 1])
+            }
+        },
+        onFontScaleDecrease = {
+            val currentIndex = FontScale.entries.indexOf(fontScale.value)
+            if (currentIndex > 0) {
+                onFontScaleChange(FontScale.entries[currentIndex - 1])
+            }
+        },
+        onSearchQuery = { query ->
+            searchQuery = query
+        },
+        onRecipeSelected = { recipeId ->
+            onRecetaClick(recipeId.toString())
+        }
+    )
     
     // Scaffold proporciona la estructura básica con FAB
     Scaffold(
@@ -72,6 +106,19 @@ fun RecetasScreen(
                     ) 
                 },
                 actions = {
+                    // Botón de navegación por voz
+                    VoiceNavigationIconButton(
+                        voiceManager = voiceManager,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    
+                    // Control de contraste
+                    ContrastModeControl(
+                        contrastMode = contrastMode.value,
+                        onContrastModeChange = onContrastModeChange,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    
                     // Botón de tamaño de fuente
                     FontSizeButton(
                         currentScale = fontScale,

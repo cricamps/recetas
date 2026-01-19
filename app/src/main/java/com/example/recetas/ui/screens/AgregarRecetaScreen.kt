@@ -14,6 +14,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.recetas.accessibility.ContrastMode
+import com.example.recetas.accessibility.ContrastModeControl
+import com.example.recetas.accessibility.FontScale
+import com.example.recetas.accessibility.FontSizeButton
 
 /**
  * Pantalla para agregar una nueva receta.
@@ -25,9 +29,15 @@ import androidx.compose.ui.unit.sp
  * - DropdownMenu: Selector de dificultad
  * - Button: Guardar y cancelar
  * - Snackbar: Confirmación de guardado
+ * - FontSizeButton: Control de tamaño de fuente
+ * - ContrastModeControl: Control de nivel de contraste
  * 
  * @param isDarkTheme Estado del tema oscuro/claro
  * @param onThemeChange Callback para cambiar el tema
+ * @param fontScale Estado de la escala de fuente
+ * @param onFontScaleChange Callback para cambiar la escala de fuente
+ * @param contrastMode Estado del modo de contraste
+ * @param onContrastModeChange Callback para cambiar el modo de contraste
  * @param onNavigateBack Callback para volver atrás
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +45,10 @@ import androidx.compose.ui.unit.sp
 fun AgregarRecetaScreen(
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit,
+    fontScale: MutableState<FontScale>,
+    onFontScaleChange: (FontScale) -> Unit,
+    contrastMode: MutableState<ContrastMode>,
+    onContrastModeChange: (ContrastMode) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     // Estados para los campos del formulario
@@ -86,6 +100,19 @@ fun AgregarRecetaScreen(
                     }
                 },
                 actions = {
+                    // Control de contraste
+                    ContrastModeControl(
+                        contrastMode = contrastMode.value,
+                        onContrastModeChange = onContrastModeChange,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    
+                    // Botón de tamaño de fuente
+                    FontSizeButton(
+                        currentScale = fontScale,
+                        onScaleChange = onFontScaleChange
+                    )
+                    
                     IconButton(onClick = onThemeChange) {
                         Text(
                             text = if (isDarkTheme) "☀️" else "🌙",

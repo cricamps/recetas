@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.recetas.accessibility.ContrastMode
 
 /**
  * Esquema de colores para modo oscuro
@@ -55,15 +56,17 @@ private val LightColorScheme = lightColorScheme(
 )
 
 /**
- * Tema principal de la aplicación Recetas
+ * Tema principal de la aplicación Recetas con soporte de contraste mejorado
  * 
  * @param darkTheme Si es true, usa el esquema de colores oscuro
+ * @param contrastMode Nivel de contraste para accesibilidad
  * @param dynamicColor Si es true, usa colores dinámicos en Android 12+
  * @param content Contenido composable que usará este tema
  */
 @Composable
 fun RecetasTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    contrastMode: ContrastMode = ContrastMode.NORMAL,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Deshabilitado para usar nuestros colores personalizados
     content: @Composable () -> Unit
@@ -73,8 +76,8 @@ fun RecetasTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        // Usar los esquemas de colores con contraste mejorado
+        else -> ContrastColorSchemes.getColorScheme(darkTheme, contrastMode)
     }
     
     val view = LocalView.current

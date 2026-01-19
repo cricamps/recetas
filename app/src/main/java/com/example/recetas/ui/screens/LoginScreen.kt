@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.recetas.accessibility.*
+import androidx.compose.runtime.MutableState
 
 /**
  * Pantalla de inicio de sesión ACCESIBLE con diseño mejorado.
@@ -46,6 +47,8 @@ import com.example.recetas.accessibility.*
  * @param onThemeChange Callback para cambiar el tema
  * @param fontScale Estado de la escala de fuente
  * @param onFontScaleChange Callback para cambiar la escala de fuente
+ * @param contrastMode Estado del modo de contraste
+ * @param onContrastModeChange Callback para cambiar el modo de contraste
  * @param onLoginSuccess Callback cuando el login es exitoso
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +58,8 @@ fun LoginScreen(
     onThemeChange: () -> Unit,
     fontScale: MutableState<FontScale>,
     onFontScaleChange: (FontScale) -> Unit,
+    contrastMode: MutableState<ContrastMode>,
+    onContrastModeChange: (ContrastMode) -> Unit,
     onLoginSuccess: () -> Unit
 ) {
     val context = LocalContext.current
@@ -160,6 +165,13 @@ fun LoginScreen(
             TopAppBar(
                 title = { },
                 actions = {
+                    // Control de contraste
+                    ContrastModeControl(
+                        contrastMode = contrastMode.value,
+                        onContrastModeChange = onContrastModeChange,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    
                     // Botón de tamaño de fuente
                     FontSizeButton(
                         currentScale = fontScale,

@@ -14,6 +14,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.FontScaleManager
 import com.example.recetas.accessibility.LocalFontScale
+import com.example.recetas.accessibility.ContrastMode
+import com.example.recetas.accessibility.ContrastManager
+import com.example.recetas.accessibility.LocalContrastMode
 import com.example.recetas.navigation.NavigationGraph
 import com.example.recetas.ui.theme.RecetasTheme
 
@@ -71,6 +74,7 @@ import com.example.recetas.ui.theme.RecetasTheme
  * ==============================
  * ✅ Tema oscuro/claro configurable
  * ✅ Tamaño de fuente ajustable (5 niveles)
+ * ✅ Contraste mejorado (4 niveles: Normal, Aumentado, Alto, Muy Alto)
  * ✅ Navegación entre múltiples pantallas
  * ✅ Paso de parámetros (ID de receta)
  * ✅ Búsqueda de recetas
@@ -102,10 +106,22 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(FontScaleManager.loadScale(context)) 
             }
             
-            // Aplicar el tema de la aplicación con soporte de escala de fuente
-            RecetasTheme(darkTheme = isDarkTheme.value) {
-                // Proveer la escala de fuente a toda la app
-                CompositionLocalProvider(LocalFontScale provides fontScale) {
+            // Estado global para el modo de contraste
+            // Cargar la preferencia guardada al iniciar
+            val contrastMode = remember {
+                mutableStateOf(ContrastManager.loadContrastMode(context))
+            }
+            
+            // Aplicar el tema de la aplicación con soporte de escala de fuente y contraste
+            RecetasTheme(
+                darkTheme = isDarkTheme.value,
+                contrastMode = contrastMode.value
+            ) {
+                // Proveer la escala de fuente y el modo de contraste a toda la app
+                CompositionLocalProvider(
+                    LocalFontScale provides fontScale,
+                    LocalContrastMode provides contrastMode
+                ) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
@@ -118,6 +134,11 @@ class MainActivity : ComponentActivity() {
                             onFontScaleChange = { newScale ->
                                 fontScale.value = newScale
                                 FontScaleManager.saveScale(context, newScale)
+                            },
+                            contrastMode = contrastMode,
+                            onContrastModeChange = { newMode ->
+                                contrastMode.value = newMode
+                                ContrastManager.saveContrastMode(context, newMode)
                             }
                         )
                     }
@@ -142,13 +163,17 @@ class MainActivity : ComponentActivity() {
  * @param onThemeChange Función para alternar el tema
  * @param fontScale Estado mutable de la escala de fuente
  * @param onFontScaleChange Función para cambiar la escala de fuente
+ * @param contrastMode Estado mutable del modo de contraste
+ * @param onContrastModeChange Función para cambiar el modo de contraste
  */
 @Composable
 fun RecetasApp(
     isDarkTheme: MutableState<Boolean>,
     onThemeChange: () -> Unit,
     fontScale: MutableState<FontScale>,
-    onFontScaleChange: (FontScale) -> Unit
+    onFontScaleChange: (FontScale) -> Unit,
+    contrastMode: MutableState<ContrastMode>,
+    onContrastModeChange: (ContrastMode) -> Unit
 ) {
     // Crear el NavController - API principal de Navigation
     // rememberNavController() asegura que se mantenga durante recomposiciones
@@ -160,6 +185,8 @@ fun RecetasApp(
         isDarkTheme = isDarkTheme,
         onThemeChange = onThemeChange,
         fontScale = fontScale,
-        onFontScaleChange = onFontScaleChange
+        onFontScaleChange = onFontScaleChange,
+        contrastMode = contrastMode,
+        onContrastModeChange = onContrastModeChange
     )
 }
