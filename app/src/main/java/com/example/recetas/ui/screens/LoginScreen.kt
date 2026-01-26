@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.recetas.accessibility.*
 import androidx.compose.runtime.MutableState
+import androidx.compose.animation.core.*
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.recetas.ui.components.AnimatedButton
 
 /**
  * Pantalla de inicio de sesión ACCESIBLE con diseño mejorado.
@@ -479,8 +482,8 @@ fun LoginScreen(
                             )
                         }
                         
-                        // Botón de inicio de sesión
-                        Button(
+                        // Botón animado de inicio de sesión
+                        AnimatedButton(
                             onClick = {
                                 hapticFeedback(context)
                                 focusManager.clearFocus()
@@ -513,8 +516,7 @@ fun LoginScreen(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = primaryRed,
                                 contentColor = Color.White
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                            )
                         ) {
                             Text(
                                 text = "Iniciar Sesión",

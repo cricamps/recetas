@@ -1,11 +1,12 @@
-# 📱 Aplicación de Recetas Chilenas - Con Accesibilidad Completa
+# 📱 Aplicación de Recetas Chilenas - Con Animaciones y Accesibilidad
 
 **Curso:** DSY2204 - Desarrollo de Aplicaciones Móviles  
-**Semana:** 3 - Actividad Sumativa (Accesibilidad)  
+**Semana:** 3 - Implementación de Kotlin + Sistema de Animaciones  
 **Estudiante:** Cristobal Camps  
 **Fecha:** Enero 2026
 
-## ✨ ¡NUEVO! Características de Accesibilidad
+
+## 🌈 Características de Accesibilidad Completa
 
 🔤 **Aumento de Tamaño de Letra**: 5 niveles de escalado (0.85x a 1.5x)  
 🔊 **Lectura en Voz Alta (TTS)**: Text-to-Speech para recetas completas  
@@ -26,7 +27,10 @@
 ```
 com.example.recetas/
 │
-├── accessibility/                 # ✨ NUEVO: Módulo de Accesibilidad
+├── animations/                    # 🎬 NUEVO S3: Sistema de Animaciones
+│   └── RecetaAnimations.kt        # Specs de animación reutilizables
+│
+├── accessibility/                 # ✨ Módulo de Accesibilidad
 │   ├── AccessibilityUtils.kt     # Funciones helper de accesibilidad
 │   ├── FontScale.kt              # Sistema de escalado de fuente
 │   ├── FontScaleUtils.kt         # Control visual de fuente
@@ -45,6 +49,10 @@ com.example.recetas/
 │   └── NavigationGraph.kt        # Grafo de navegación (con accesibilidad)
 │
 ├── ui/
+│   ├── components/                # 🎬 NUEVO S3: Componentes Animados
+│   │   ├── AnimatedButtons.kt     # Botones con animaciones
+│   │   └── AnimatedCards.kt       # Cards con animaciones
+│   │
 │   ├── screens/                  # Pantallas con accesibilidad completa
 │   │   ├── PermisosScreen.kt     # Solicitud de permisos
 │   │   ├── LoginScreen.kt        # Login con TTS

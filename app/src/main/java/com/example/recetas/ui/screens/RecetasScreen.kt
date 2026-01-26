@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,13 @@ import com.example.recetas.data.RecetasRepository
 import androidx.navigation.NavController
 import com.example.recetas.voice.rememberVoiceNavigationManager
 import com.example.recetas.voice.VoiceNavigationIconButton
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import com.example.recetas.animations.RecetaAnimations
+import com.example.recetas.ui.components.AnimatedFAB
+import com.example.recetas.ui.components.AnimatedIconButton
 
 /**
  * Pantalla principal que muestra la lista de recetas chilenas.
@@ -140,8 +148,8 @@ fun RecetasScreen(
             )
         },
         floatingActionButton = {
-            // Botón flotante para agregar nueva receta
-            FloatingActionButton(
+            // Botón flotante animado para agregar nueva receta
+            AnimatedFAB(
                 onClick = onAgregarReceta,
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
@@ -185,9 +193,11 @@ fun RecetasScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(recetas) { receta ->
+                    itemsIndexed(recetas) { index, receta ->
+                        // Animación staggered: cada card aparece con delay
                         RecetaCard(
                             receta = receta,
+                            index = index,
                             onClick = { onRecetaClick(receta.id) }
                         )
                     }
@@ -224,9 +234,9 @@ fun SearchBar(
             )
         },
         trailingIcon = {
-            // Botón TTS para personas con discapacidad del habla
+            // Botón TTS animado para personas con discapacidad del habla
             if (searchQuery.isNotEmpty()) {
-                IconButton(
+                AnimatedIconButton(
                     onClick = {
                         // Hablar el texto de búsqueda
                         hablarTexto(context, "Buscando: $searchQuery")
@@ -245,28 +255,78 @@ fun SearchBar(
 }
 
 /**
- * Tarjeta que muestra la información de una receta.
+ * Tarjeta que muestra la información de una receta con animación.
  * 
  * @param receta Datos de la receta a mostrar
+ * @param index Índice en la lista para animación staggered
  * @param onClick Callback cuando se hace click en la tarjeta
  */
 @Composable
 fun RecetaCard(
     receta: Receta,
+    index: Int = 0,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
     // Estado para el icono de favorito (local, no persistente)
     var isFavorite by remember { mutableStateOf(receta.isFavorita) }
     
+    // Animación staggered de entrada
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay((index * 150).toLong())  // 150ms de delay entre cada card
+        visible = true
+    }
+    
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = 800,  // 800ms = MÁS LENTO
+            easing = FastOutSlowInEasing
+        ),
+        label = "card_alpha"
+    )
+    
+    val offsetY by animateDpAsState(
+        targetValue = if (visible) 0.dp else 60.dp,  // 60dp = MUY EVIDENTE
+        animationSpec = tween(
+            durationMillis = 800,  // 800ms = MÁS LENTO
+            easing = FastOutSlowInEasing
+        ),
+        label = "card_offset"
+    )
+    
+    // Animación de escala al presionar
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,  // 15% de reducción - EXAGERADO
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,  // Rebote BAJO = MÁS REBOTE
+            stiffness = Spring.StiffnessLow  // Rigidez baja = MÁS LENTO
+        ),
+        label = "press_scale"
+    )
+    
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            .graphicsLayer {
+                this.alpha = alpha
+                translationY = offsetY.toPx()
+                scaleX = pressScale
+                scaleY = pressScale
+            },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 8.dp
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        ),
+        interactionSource = interactionSource
     ) {
         Row(
             modifier = Modifier
@@ -291,8 +351,8 @@ fun RecetaCard(
                     modifier = Modifier.weight(1f)
                     )
                     
-                    // Botón TTS para decir el nombre de la receta
-                    IconButton(
+                    // Botón TTS animado para decir el nombre de la receta
+                    AnimatedIconButton(
                         onClick = {
                             hablarTexto(context, receta.nombre)
                         },
@@ -339,8 +399,8 @@ fun RecetaCard(
                 }
             }
             
-            // Botón de favorito
-            IconButton(
+            // Botón de favorito con animación
+            AnimatedIconButton(
                 onClick = { isFavorite = !isFavorite }
             ) {
                 Icon(

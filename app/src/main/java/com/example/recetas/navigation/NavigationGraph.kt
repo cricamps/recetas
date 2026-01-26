@@ -1,5 +1,7 @@
 package com.example.recetas.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.navigation.NavHostController
@@ -10,23 +12,16 @@ import androidx.navigation.navArgument
 import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.ContrastMode
 import com.example.recetas.ui.screens.PermisosScreen
-import com.example.recetas.ui.screens.LoginScreen
+import com.example.recetas.ui.screens.LoginScreenMejorada
 import com.example.recetas.ui.screens.RecetasScreen
 import com.example.recetas.ui.screens.DetalleRecetaScreen
 import com.example.recetas.ui.screens.AgregarRecetaScreen
 
 /**
  * Configuración del grafo de navegación de la aplicación.
- * Define todas las pantallas y las transiciones entre ellas.
- * 
- * @param navController Controlador de navegación
- * @param isDarkTheme Estado del tema oscuro/claro
- * @param onThemeChange Callback para cambiar el tema
- * @param fontScale Estado de la escala de fuente
- * @param onFontScaleChange Callback para cambiar la escala de fuente
- * @param contrastMode Estado del modo de contraste
- * @param onContrastModeChange Callback para cambiar el modo de contraste
+ * Define todas las pantallas y las transiciones animadas entre ellas.
  */
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
@@ -41,8 +36,12 @@ fun NavigationGraph(
         navController = navController,
         startDestination = Screen.Permisos.route
     ) {
-        // Pantalla de Permisos
-        composable(route = Screen.Permisos.route) {
+        // Pantalla de Permisos - Fade suave
+        composable(
+            route = Screen.Permisos.route,
+            enterTransition = { fadeIn(tween(300)) },
+            exitTransition = { fadeOut(tween(300)) }
+        ) {
             PermisosScreen(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
@@ -51,18 +50,42 @@ fun NavigationGraph(
                 contrastMode = contrastMode,
                 onContrastModeChange = onContrastModeChange,
                 onPermissionsGranted = {
-                    // Navegar a Login después de conceder permisos
                     navController.navigate(Screen.Login.route) {
-                        // Limpiar el back stack para que no se pueda volver a permisos
                         popUpTo(Screen.Permisos.route) { inclusive = true }
                     }
                 }
             )
         }
         
-        // Pantalla de Login
-        composable(route = Screen.Login.route) {
-            LoginScreen(
+        // Pantalla de Login - Slide desde la derecha
+        composable(
+            route = Screen.Login.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)  // 1 SEGUNDO COMPLETO
+                ) + fadeIn(tween(1000))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it / 3 },
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(1000))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it / 3 },
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(1000))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(1000))
+            }
+        ) {
+            LoginScreenMejorada(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,
                 fontScale = fontScale,
@@ -70,17 +93,41 @@ fun NavigationGraph(
                 contrastMode = contrastMode,
                 onContrastModeChange = onContrastModeChange,
                 onLoginSuccess = {
-                    // Navegar a la pantalla de recetas al hacer login
                     navController.navigate(Screen.Recetas.route) {
-                        // Limpiar el back stack para que no se pueda volver al login
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
         }
         
-        // Pantalla principal de Recetas
-        composable(route = Screen.Recetas.route) {
+        // Pantalla principal de Recetas - Slide desde la derecha
+        composable(
+            route = Screen.Recetas.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it / 3 },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it / 3 },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(300))
+            }
+        ) {
             RecetasScreen(
                 navController = navController,
                 isDarkTheme = isDarkTheme.value,
@@ -90,22 +137,38 @@ fun NavigationGraph(
                 contrastMode = contrastMode,
                 onContrastModeChange = onContrastModeChange,
                 onRecetaClick = { recetaId ->
-                    // Navegar al detalle de la receta seleccionada
                     navController.navigate(Screen.DetalleReceta.createRoute(recetaId))
                 },
                 onAgregarReceta = {
-                    // Navegar a la pantalla de agregar receta
                     navController.navigate(Screen.AgregarReceta.route)
                 }
             )
         }
         
-        // Pantalla de Detalle de Receta
+        // Pantalla de Detalle - Slide desde abajo (modal)
         composable(
             route = Screen.DetalleReceta.route,
             arguments = listOf(
                 navArgument("recetaId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
         ) { backStackEntry ->
             val recetaId = backStackEntry.arguments?.getString("recetaId") ?: ""
             DetalleRecetaScreen(
@@ -122,8 +185,28 @@ fun NavigationGraph(
             )
         }
         
-        // Pantalla de Agregar Receta
-        composable(route = Screen.AgregarReceta.route) {
+        // Pantalla Agregar Receta - Slide desde abajo (modal)
+        composable(
+            route = Screen.AgregarReceta.route,
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
+        ) {
             AgregarRecetaScreen(
                 isDarkTheme = isDarkTheme.value,
                 onThemeChange = onThemeChange,

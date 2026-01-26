@@ -55,6 +55,17 @@ dependencies {
     // Navigation Compose - Semana 2
     implementation("androidx.navigation:navigation-compose:2.7.6")
     
+    // Animaciones - Semana 3+
+    implementation("androidx.compose.animation:animation:1.5.4")
+    implementation("androidx.compose.animation:animation-graphics:1.5.4")
+    implementation("androidx.compose.animation:animation-core:1.5.4")
+    
+    // Lottie para animaciones vectoriales
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+    
+    // Accompanist para efectos adicionales
+    implementation("com.google.accompanist:accompanist-placeholder-material:0.32.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
