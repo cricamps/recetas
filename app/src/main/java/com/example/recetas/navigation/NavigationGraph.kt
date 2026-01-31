@@ -11,11 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.ContrastMode
-import com.example.recetas.ui.screens.PermisosScreen
-import com.example.recetas.ui.screens.LoginScreenMejorada
-import com.example.recetas.ui.screens.RecetasScreen
-import com.example.recetas.ui.screens.DetalleRecetaScreen
-import com.example.recetas.ui.screens.AgregarRecetaScreen
+import com.example.recetas.ui.screens.*
 
 /**
  * Configuración del grafo de navegación de la aplicación.
@@ -214,6 +210,39 @@ fun NavigationGraph(
                 onFontScaleChange = onFontScaleChange,
                 contrastMode = contrastMode,
                 onContrastModeChange = onContrastModeChange,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        // Pantalla de Minuta Semanal - Slide desde la derecha
+        // Implementa el requerimiento de Semana 4: Array de 5 recetas con recomendaciones nutricionales
+        composable(
+            route = Screen.Minuta.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
+        ) {
+            MinutaScreen(
+                onNavigateToReceta = { recetaId ->
+                    navController.navigate(Screen.DetalleReceta.createRoute(recetaId))
+                },
                 onNavigateBack = {
                     navController.popBackStack()
                 }

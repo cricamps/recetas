@@ -27,8 +27,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.recetas.ui.components.InstagramLogo
 import com.example.recetas.accessibility.*
 import androidx.compose.runtime.MutableState
+import com.example.recetas.data.UsuariosRepository
 
 /**
  * Pantalla de Login mejorada con opción de registro
@@ -208,8 +210,10 @@ fun LoginScreenMejorada(
                                         if (loginEmail.isBlank() || loginPassword.isBlank()) {
                                             showError = true
                                             errorMessage = "Completa todos los campos"
-                                        } else if (loginEmail == "admin@recetas.cl" && loginPassword == "123456") {
+                                        } else if (UsuariosRepository.autenticarUsuario(loginEmail, loginPassword)) {
+                                            val usuario = UsuariosRepository.buscarPorEmail(loginEmail)
                                             hapticSuccess(context)
+                                            announceForAccessibility(context, "Bienvenido ${usuario?.nombre ?: ""}")
                                             onLoginSuccess()
                                         } else {
                                             showError = true
@@ -249,9 +253,21 @@ fun LoginScreenMejorada(
                                                 errorMessage = "La contraseña debe tener al menos 6 caracteres"
                                             }
                                             else -> {
-                                                hapticSuccess(context)
-                                                // Registro exitoso - auto login
-                                                onLoginSuccess()
+                                                val nuevoUsuario = UsuariosRepository.registrarUsuario(
+                                                    nombre = registerName,
+                                                    email = registerEmail,
+                                                    password = registerPassword
+                                                )
+                                                
+                                                if (nuevoUsuario != null) {
+                                                    hapticSuccess(context)
+                                                    announceForAccessibility(context, "Cuenta creada exitosamente. Bienvenido ${nuevoUsuario.nombre}")
+                                                    onLoginSuccess()
+                                                } else {
+                                                    showError = true
+                                                    errorMessage = "El email ya está registrado"
+                                                    hapticError(context)
+                                                }
                                             }
                                         }
                                     },
@@ -267,6 +283,70 @@ fun LoginScreenMejorada(
                                     color = primaryRed,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold
+                                )
+                            }
+                            
+                            // Divider
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text(
+                                text = "o entra vía Redes Sociales",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isDarkTheme) Color.Gray else Color(0xFF8D6E63)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Botones de redes sociales
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                // Facebook
+                                SocialButton(
+                                    icon = "f",
+                                    backgroundColor = Color(0xFF1877F2),
+                                    contentDescription = "Continuar con Facebook",
+                                    onClick = {
+                                        hapticSuccess(context)
+                                        announceForAccessibility(context, "Iniciando sesión con Facebook")
+                                        onLoginSuccess()
+                                    }
+                                )
+                                
+                                // Instagram (logo real)
+                                InstagramLogo(
+                                    onClick = {
+                                        hapticSuccess(context)
+                                        announceForAccessibility(context, "Iniciando sesión con Instagram")
+                                        onLoginSuccess()
+                                    }
+                                )
+                                
+                                // Google
+                                SocialButton(
+                                    icon = "G",
+                                    backgroundColor = Color.White,
+                                    textColor = Color(0xFF4285F4),
+                                    contentDescription = "Continuar con Google",
+                                    onClick = {
+                                        hapticSuccess(context)
+                                        announceForAccessibility(context, "Iniciando sesión con Google")
+                                        onLoginSuccess()
+                                    },
+                                    hasBorder = true,
+                                    borderColor = Color(0xFFDDDDDD),
+                                    fontSize = 34.sp
+                                )
+                                
+                                // X (Twitter)
+                                SocialButton(
+                                    icon = "𝕏",
+                                    backgroundColor = Color.Black,
+                                    contentDescription = "Continuar con X",
+                                    onClick = {
+                                        hapticSuccess(context)
+                                        announceForAccessibility(context, "Iniciando sesión con X")
+                                        onLoginSuccess()
+                                    }
                                 )
                             }
                         }
@@ -326,6 +406,8 @@ fun LoginForm(
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
     val fieldColor = if (isDarkTheme) Color(0xFF3A3A3A) else Color(0xFFFFE4B5)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showPasswordResetDialog by remember { mutableStateOf(false) }
     
     OutlinedTextField(
         value = email,
@@ -403,6 +485,120 @@ fun LoginForm(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
+    }
+    
+    Spacer(modifier = Modifier.height(8.dp))
+    
+    // Botón de "Olvidé mi contraseña"
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        TextButton(
+            onClick = {
+                hapticFeedback(context)
+                showPasswordResetDialog = true
+            }
+        ) {
+            Text(
+                text = "¿Olvidaste tu contraseña?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFD32F2F)
+            )
+        }
+    }
+    
+    // Diálogo de recuperación de contraseña
+    if (showPasswordResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordResetDialog = false },
+            title = { Text("🔑 Recuperar Contraseña") },
+            text = {
+                Column {
+                    Text("Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña.")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Para propósitos de demo, contacta al administrador en:\nadmin@recetas.cl",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPasswordResetDialog = false
+                        hapticSuccess(context)
+                        announceForAccessibility(context, "Solicitud de recuperación enviada")
+                    }
+                ) {
+                    Text("Entendido")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordResetDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * Botón circular para login con redes sociales
+ */
+@Composable
+fun SocialButton(
+    icon: String,
+    backgroundColor: Color,
+    contentDescription: String,
+    onClick: () -> Unit,
+    textColor: Color = Color.White,
+    hasBorder: Boolean = false,
+    borderColor: Color = Color.LightGray,
+    fontSize: androidx.compose.ui.unit.TextUnit = 28.sp
+) {
+    val context = LocalContext.current
+    
+    Box(
+        modifier = Modifier
+            .size(64.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .then(
+                if (hasBorder) {
+                    Modifier.then(
+                        Modifier
+                            .padding(0.dp)
+                            .then(
+                                Modifier.background(
+                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                        colors = listOf(borderColor, borderColor)
+                                    ),
+                                    CircleShape
+                                )
+                            )
+                            .padding(2.dp)
+                            .background(backgroundColor, CircleShape)
+                    )
+                } else Modifier
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(
+            onClick = {
+                hapticFeedback(context)
+                onClick()
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                text = icon,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+        }
     }
 }
 

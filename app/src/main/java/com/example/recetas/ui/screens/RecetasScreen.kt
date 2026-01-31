@@ -7,9 +7,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +31,7 @@ import com.example.recetas.accessibility.scaledSp
 import com.example.recetas.data.Receta
 import com.example.recetas.data.RecetasRepository
 import androidx.navigation.NavController
+import com.example.recetas.navigation.Screen
 import com.example.recetas.voice.rememberVoiceNavigationManager
 import com.example.recetas.voice.VoiceNavigationIconButton
 import androidx.compose.animation.core.*
@@ -75,8 +79,23 @@ fun RecetasScreen(
     var searchQuery by remember { mutableStateOf("") }
     
     // Obtener recetas filtradas según la búsqueda
-    val recetas = remember(searchQuery) {
+    val todasLasRecetas = remember(searchQuery) {
         RecetasRepository.searchRecetas(searchQuery)
+    }
+    
+    // Agrupar recetas por categoría
+    val recetasAgrupadas = remember(todasLasRecetas) {
+        todasLasRecetas.groupBy { it.categoria }.toSortedMap(compareBy {
+            // Orden personalizado: Platos Principales primero, Postres al final
+            when(it) {
+                "Plato Principal" -> 1
+                "Sopa/Guiso" -> 2
+                "Acompañamiento" -> 3
+                "Ensalada" -> 4
+                "Postre" -> 5
+                else -> 6
+            }
+        })
     }
     
     // Gestor de navegación por voz
@@ -109,11 +128,41 @@ fun RecetasScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Recetas de la Cocina Chilena",
-                        style = MaterialTheme.typography.headlineSmall
+                        "Recetas Chilenas",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     ) 
                 },
                 actions = {
+                    // Botón de cerrar sesión
+                    IconButton(
+                        onClick = {
+                            // Navegar de vuelta al login
+                            navController.navigate("login") {
+                                popUpTo("recetas") { inclusive = true }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Cerrar sesión",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    
+                    // Botón de Minuta Semanal (Semana 4 - POO)
+                    IconButton(
+                        onClick = {
+                            navController.navigate(Screen.Minuta.route)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Minuta Semanal",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    
                     // Botón de navegación por voz
                     VoiceNavigationIconButton(
                         voiceManager = voiceManager,
@@ -174,8 +223,60 @@ fun RecetasScreen(
                     .padding(16.dp)
             )
             
+            // Banner destacado para la Minuta Semanal
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { navController.navigate(Screen.Minuta.route) },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Column {
+                            Text(
+                                "📅 Minuta Semanal",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                "5 recetas nuevas esta semana",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = "Ver",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Lista de recetas
-            if (recetas.isEmpty()) {
+            if (todasLasRecetas.isEmpty()) {
                 // Mensaje cuando no hay resultados
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -193,15 +294,99 @@ fun RecetasScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    itemsIndexed(recetas) { index, receta ->
-                        // Animación staggered: cada card aparece con delay
-                        RecetaCard(
-                            receta = receta,
-                            index = index,
-                            onClick = { onRecetaClick(receta.id) }
-                        )
+                    // Iterar por cada categoría
+                    recetasAgrupadas.forEach { (categoria, recetasCategoria) ->
+                        // Header de categoría
+                        item {
+                            CategoryHeader(
+                                categoria = categoria,
+                                cantidad = recetasCategoria.size
+                            )
+                        }
+                        
+                        // Recetas de esta categoría
+                        itemsIndexed(recetasCategoria) { index, receta ->
+                            RecetaCard(
+                                receta = receta,
+                                index = index,
+                                onClick = { onRecetaClick(receta.id) }
+                            )
+                        }
+                        
+                        // Espaciador después de cada categoría
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Header visual para cada categoría de recetas.
+ * 
+ * @param categoria Nombre de la categoría
+ * @param cantidad Número de recetas en la categoría
+ */
+@Composable
+fun CategoryHeader(
+    categoria: String,
+    cantidad: Int
+) {
+    val (icono, color) = when(categoria) {
+        "Plato Principal" -> "🍲" to MaterialTheme.colorScheme.primary
+        "Sopa/Guiso" -> "🍜" to MaterialTheme.colorScheme.secondary
+        "Acompañamiento" -> "🥗" to MaterialTheme.colorScheme.tertiary
+        "Postre" -> "🍰" to MaterialTheme.colorScheme.error
+        "Ensalada" -> "🥗" to MaterialTheme.colorScheme.tertiary
+        else -> "🍽️" to MaterialTheme.colorScheme.primary
+    }
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.1f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = icono,
+                    fontSize = 28.sp
+                )
+                Text(
+                    text = categoria,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+            }
+            
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = color.copy(alpha = 0.2f)
+            ) {
+                Text(
+                    text = "$cantidad receta${if (cantidad != 1) "s" else ""}",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = color
+                )
             }
         }
     }
@@ -269,7 +454,7 @@ fun RecetaCard(
 ) {
     val context = LocalContext.current
     // Estado para el icono de favorito (local, no persistente)
-    var isFavorite by remember { mutableStateOf(receta.isFavorita) }
+    var isFavorite by remember { mutableStateOf(receta.esFavorita) }
     
     // Animación staggered de entrada
     var visible by remember { mutableStateOf(false) }
@@ -382,15 +567,15 @@ fun RecetaCard(
                 ) {
                     InfoChip(
                         icon = "⏱️",
-                        text = receta.tiempoPreparacion
+                        text = receta.obtenerTiempoPreparacion()
                     )
                     InfoChip(
-                        icon = when(receta.dificultad) {
+                        icon = when(receta.obtenerNivelDificultad()) {
                             "Fácil" -> "✅"
                             "Media" -> "⚠️"
                             else -> "🔥"
                         },
-                        text = receta.dificultad
+                        text = receta.obtenerNivelDificultad()
                     )
                     InfoChip(
                         icon = "🇨🇱",
@@ -445,6 +630,37 @@ fun InfoChip(
             text = text,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+        )
+    }
+}
+
+/**
+ * Fila de información nutricional.
+ * 
+ * @param label Etiqueta del nutriente
+ * @param value Valor del nutriente
+ */
+@Composable
+fun NutritionInfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

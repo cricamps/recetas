@@ -37,4 +37,10 @@ sealed class Screen(val route: String) {
      * Pantalla para agregar una nueva receta.
      */
     object AgregarReceta : Screen("agregar_receta")
+    
+    /**
+     * Pantalla de Minuta Semanal con 5 recetas y recomendaciones nutricionales.
+     * Implementa el requerimiento de la Semana 4.
+     */
+    object Minuta : Screen("minuta")
 }

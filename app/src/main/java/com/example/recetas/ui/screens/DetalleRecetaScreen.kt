@@ -21,6 +21,7 @@ import com.example.recetas.accessibility.FontScale
 import com.example.recetas.accessibility.FontSizeButton
 import com.example.recetas.accessibility.SpeechManager
 import com.example.recetas.accessibility.hablarTexto
+import com.example.recetas.data.MinutasRepository
 import com.example.recetas.data.RecetasRepository
 
 /**
@@ -65,11 +66,13 @@ fun DetalleRecetaScreen(
         }
     }
     
-    // Obtener la receta del repositorio
-    val receta = remember { RecetasRepository.getRecetaById(recetaId) }
+    // Obtener la receta del repositorio (primero intenta minutas, luego recetas normales)
+    val receta = remember { 
+        MinutasRepository.getRecetaById(recetaId) ?: RecetasRepository.getRecetaById(recetaId)
+    }
     
     // Estado para favorito
-    var isFavorite by remember { mutableStateOf(receta?.isFavorita ?: false) }
+    var isFavorite by remember { mutableStateOf(receta?.esFavorita ?: false) }
     
     if (receta == null) {
         // Mostrar mensaje si no se encuentra la receta
@@ -165,10 +168,15 @@ fun DetalleRecetaScreen(
             DescriptionCard(descripcion = receta.descripcion)
             
             // Ingredientes
-            IngredientsCard(ingredientes = receta.ingredientes)
+            IngredientsCard(ingredientes = receta.obtenerIngredientes())
             
             // Preparación
-            PreparationCard(preparacion = receta.preparacion)
+            PreparationCard(preparacion = receta.obtenerPasosPreparacion())
+            
+            // Información Nutricional (si existe)
+            receta.obtenerInfoNutricional()?.let { info ->
+                NutritionalInfoCard(info = info, calorias = receta.obtenerCaloriasTotales())
+            }
         }
     }
 }
@@ -201,11 +209,11 @@ fun HeaderCard(receta: com.example.recetas.data.Receta) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 InfoItem(label = "Origen", value = receta.origen, icon = "🇨🇱")
-                InfoItem(label = "Tiempo", value = receta.tiempoPreparacion, icon = "⏱️")
+                InfoItem(label = "Tiempo", value = receta.obtenerTiempoPreparacion(), icon = "⏱️")
                 InfoItem(
                     label = "Dificultad", 
-                    value = receta.dificultad,
-                    icon = when(receta.dificultad) {
+                    value = receta.obtenerNivelDificultad(),
+                    icon = when(receta.obtenerNivelDificultad()) {
                         "Fácil" -> "✅"
                         "Media" -> "⚠️"
                         else -> "🔥"
@@ -466,5 +474,98 @@ fun InfoItem(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
+    }
+}
+
+/**
+ * Tarjeta con información nutricional completa.
+ */
+@Composable
+fun NutritionalInfoCard(
+    info: com.example.recetas.data.NutritionalInfo,
+    calorias: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "🔥 Información Nutricional",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Filas de información nutricional
+            NutritionalRow("Proteínas", "${info.proteinas}g")
+            NutritionalRow("Carbohidratos", "${info.carbohidratos}g")
+            NutritionalRow("Grasas", "${info.grasas}g")
+            if (info.fibra > 0) {
+                NutritionalRow("Fibra", "${info.fibra}g")
+            }
+            if (info.azucar > 0) {
+                NutritionalRow("Azúcares", "${info.azucar}g")
+            }
+            NutritionalRow("Sodio", "${info.sodio}mg")
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Mensaje de recomendación
+            if (calorias < 350) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "✓",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Bajo en calorías - ideal para control de peso",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Fila de información nutricional.
+ */
+@Composable
+fun NutritionalRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
     }
 }
