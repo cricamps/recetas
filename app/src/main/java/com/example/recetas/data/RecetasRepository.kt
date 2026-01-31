@@ -674,14 +674,14 @@ object RecetasRepository {
                 "Cilantro fresco",
                 "Aceite de oliva",
                 "Limón",
-                "Sal y pimienta"
+                "Sal"
             ),
             preparacion = listOf(
                 "Cortar los tomates en rodajas finas",
                 "Cortar la cebolla en pluma",
                 "Picar el cilantro",
                 "Mezclar todo en un bowl",
-                "Aliñar con aceite, limón, sal y pimienta",
+                "Aliñar con aceite, limón y sal",
                 "Servir inmediatamente"
             ),
             infoNutricional = NutritionalInfo(
@@ -740,14 +740,14 @@ object RecetasRepository {
                 "1 zanahoria",
                 "Mayonesa o yogurt",
                 "Limón",
-                "Sal y pimienta"
+                "Sal"
             ),
             preparacion = listOf(
                 "Rallar el repollo fino",
                 "Rallar la zanahoria",
                 "Mezclar en un bowl",
                 "Aliñar con mayonesa y limón",
-                "Sazonar con sal y pimienta",
+                "Sazonar con sal",
                 "Refrigerar 10 minutos antes de servir"
             ),
             infoNutricional = NutritionalInfo(
@@ -810,14 +810,14 @@ object RecetasRepository {
                 "Aceite de oliva",
                 "Vinagre",
                 "Cebolla picada (opcional)",
-                "Sal y pimienta"
+                "Sal"
             ),
             preparacion = listOf(
                 "Pelar y cortar las betarragas en cubos",
                 "Colocar en un bowl",
                 "Agregar cebolla si se desea",
                 "Aliñar con aceite y vinagre",
-                "Sazonar con sal y pimienta",
+                "Sazonar con sal",
                 "Dejar reposar 10 minutos"
             ),
             infoNutricional = NutritionalInfo(

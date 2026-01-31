@@ -386,7 +386,7 @@ object MinutasRepository {
             nuevoId = "${platoPrincipal.id}_con_${acompanamiento.id}",  // ID único
             nuevoNombre = "${platoPrincipal.nombre} con ${acompanamiento.nombre}",
             nuevaDescripcion = "${platoPrincipal.descripcion}. Acompañado de ${acompanamiento.nombre.lowercase()}.",
-            nuevosIngredientes = platoPrincipal.ingredientes + listOf("\n--- Acompañamiento: ${acompanamiento.nombre} ---") + acompanamiento.ingredientes,
+            nuevosIngredientes = platoPrincipal.ingredientes + listOf("--- Acompañamiento: ${acompanamiento.nombre} ---") + acompanamiento.ingredientes,
             nuevaPreparacion = platoPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación del acompañamiento:") + acompanamiento.obtenerPasosPreparacion()
         )
         // Guardar en cache
@@ -402,7 +402,7 @@ object MinutasRepository {
             nuevoId = "${recetaPrincipal.id}_postre_${postre.id}",  // ID único
             nuevoNombre = "${recetaPrincipal.nombre} + ${postre.nombre}",
             nuevaDescripcion = "${recetaPrincipal.descripcion} Incluye postre: ${postre.nombre.lowercase()}.",
-            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("\n--- Postre: ${postre.nombre} ---") + postre.ingredientes,
+            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("--- Postre: ${postre.nombre} ---") + postre.ingredientes,
             nuevaPreparacion = recetaPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación del postre:") + postre.obtenerPasosPreparacion()
         )
         // Guardar en cache
@@ -418,7 +418,7 @@ object MinutasRepository {
             nuevoId = "${recetaPrincipal.id}_ensalada_${ensalada.id}",  // ID único
             nuevoNombre = "${recetaPrincipal.nombre} + ${ensalada.nombre}",
             nuevaDescripcion = "${recetaPrincipal.descripcion} Acompañado de ${ensalada.nombre.lowercase()}.",
-            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("\n--- Ensalada: ${ensalada.nombre} ---") + ensalada.ingredientes,
+            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("--- Ensalada: ${ensalada.nombre} ---") + ensalada.ingredientes,
             nuevaPreparacion = recetaPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación de la ensalada:") + ensalada.obtenerPasosPreparacion()
         )
         // Guardar en cache

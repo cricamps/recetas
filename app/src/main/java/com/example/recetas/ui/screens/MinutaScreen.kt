@@ -494,18 +494,15 @@ private fun RecetaDiaCard(
             componentesMenu.acompanamiento?.let { acomp ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 6.dp)
                 ) {
-                    Text(
-                        text = "🥗",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "🥗", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "con $acomp",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.tertiary,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -514,17 +511,15 @@ private fun RecetaDiaCard(
             componentesMenu.ensalada?.let { ensalada ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 6.dp)
                 ) {
-                    Text(
-                        text = "🥗",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "🥗", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = ensalada,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -533,17 +528,15 @@ private fun RecetaDiaCard(
             componentesMenu.postre?.let { postre ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 6.dp)
                 ) {
-                    Text(
-                        text = "🍰",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "🍰", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = postre,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

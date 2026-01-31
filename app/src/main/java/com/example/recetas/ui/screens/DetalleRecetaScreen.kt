@@ -326,19 +326,61 @@ fun IngredientsCard(ingredientes: List<String>) {
                 )
             } else {
                 ingredientes.forEach { ingrediente ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "• ",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
+                    val texto = ingrediente.trim()
+                    // Detectar separadores de sección (--- Postre: ... --- / --- Ensalada: ... ---)
+                    val esSeparador = texto.startsWith("---") && texto.endsWith("---")
+                    
+                    if (texto.isEmpty()) {
+                        // Saltar elemtos vacios
+                    } else if (esSeparador) {
+                        // Separador visual de sección
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Divider(
+                            modifier = Modifier.padding(vertical = 2.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
                         )
-                        Text(
-                            text = ingrediente,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        val colorSep = when {
+                            texto.contains("Postre", ignoreCase = true) -> MaterialTheme.colorScheme.error
+                            texto.contains("Ensalada", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
+                            else -> MaterialTheme.colorScheme.tertiary
+                        }
+                        val iconoSep = when {
+                            texto.contains("Postre", ignoreCase = true) -> "🍰"
+                            texto.contains("Ensalada", ignoreCase = true) -> "🥗"
+                            else -> "🥗"
+                        }
+                        Row(
+                            modifier = Modifier.padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = iconoSep, style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            // Extraer nombre entre los guiones
+                            val nombre = texto.removePrefix("---").removeSuffix("---").trim()
+                            Text(
+                                text = nombre,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorSep
+                            )
+                        }
+                    } else {
+                        // Ingrediente normal
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "• ",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = texto,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }
@@ -375,11 +417,21 @@ fun PreparationCard(preparacion: List<String>) {
                 if (preparacion.isNotEmpty()) {
                     IconButton(
                         onClick = {
-                            val textoPreparacion = "Preparación: " + 
-                                preparacion.mapIndexed { index, paso -> 
-                                    "Paso ${index + 1}: $paso" 
-                                }.joinToString(". ")
-                            hablarTexto(context, textoPreparacion)
+                            val partes = mutableListOf<String>()
+                            var contador = 0
+                            preparacion.forEach { paso ->
+                                val pasoTrimmed = paso.trim()
+                                val esSeparador = pasoTrimmed.startsWith("Preparación del") ||
+                                                  pasoTrimmed.startsWith("Preparación de la")
+                                if (esSeparador) {
+                                    contador = 0
+                                    partes.add(pasoTrimmed)
+                                } else if (pasoTrimmed.isNotEmpty()) {
+                                    contador++
+                                    partes.add("Paso $contador: $pasoTrimmed")
+                                }
+                            }
+                            hablarTexto(context, "Preparación: " + partes.joinToString(". "))
                         }
                     ) {
                         Text(
@@ -399,44 +451,99 @@ fun PreparationCard(preparacion: List<String>) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
+                var contador = 0
                 preparacion.forEachIndexed { index, paso ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        // Número del paso
-                        Surface(
-                            modifier = Modifier.size(28.dp),
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.primary
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "${index + 1}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                        
-                        Spacer(modifier = Modifier.width(12.dp))
-                        
-                        // Texto del paso
-                        Text(
-                            text = paso,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    val pasoTrimmed = paso.trim()
                     
-                    if (index < preparacion.size - 1) {
+                    // Detectar separadores de sección (Preparación del postre / ensalada / acompañamiento)
+                    val esSeparador = pasoTrimmed.startsWith("Preparación del") ||
+                                      pasoTrimmed.startsWith("Preparación de la")
+                    
+                    if (esSeparador) {
+                        // Reiniciar contador
+                        contador = 0
+                        
+                        // Espacio antes del separador
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Línea divisora
                         Divider(
                             modifier = Modifier.padding(vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.5.dp
                         )
+                        
+                        // Título de la sección con color según tipo
+                        val colorTitulo = when {
+                            pasoTrimmed.contains("postre", ignoreCase = true) -> MaterialTheme.colorScheme.error
+                            pasoTrimmed.contains("ensalada", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
+                            else -> MaterialTheme.colorScheme.tertiary  // acompañamiento
+                        }
+                        val iconoTitulo = when {
+                            pasoTrimmed.contains("postre", ignoreCase = true) -> "🍰"
+                            pasoTrimmed.contains("ensalada", ignoreCase = true) -> "🥗"
+                            else -> "🥗"  // acompañamiento
+                        }
+                        
+                        Row(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = iconoTitulo, style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = pasoTrimmed,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = colorTitulo
+                            )
+                        }
+                    } else {
+                        // Paso normal
+                        contador++
+                        
+                        Row(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            // Número del paso
+                            Surface(
+                                modifier = Modifier.size(28.dp),
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.primary
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$contador",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.width(12.dp))
+                            
+                            // Texto del paso
+                            Text(
+                                text = pasoTrimmed,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        
+                        // Divisor entre pasos normales (no al último antes de un separador)
+                        val siguientePaso = preparacion.getOrNull(index + 1)?.trim() ?: ""
+                        val siguienteEsSeparador = siguientePaso.startsWith("Preparación del") ||
+                                                   siguientePaso.startsWith("Preparación de la")
+                        if (index < preparacion.size - 1 && !siguienteEsSeparador) {
+                            Divider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        }
                     }
                 }
             }
