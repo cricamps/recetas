@@ -273,27 +273,27 @@ object MinutasRepository {
             // Excluir Salsa Blanca
             receta.nombre != "Salsa Blanca" &&
             // Excluir acompañamientos solos (se agregarán con platos principales)
-            receta.categoria != "Acompañamiento" &&
+            receta.obtenerCategoria() != "Acompañamiento" &&
             // Excluir postres solos (se agregarán como complemento)
-            receta.categoria != "Postre"
+            receta.obtenerCategoria() != "Postre"
         }
         
         // Separar recetas por tipo
         val platosCompletos = recetasValidas.filter { 
-            it.categoria == "Plato Principal" && 
+            it.obtenerCategoria() == "Plato Principal" && 
             !platosQueRequierenAcompanamiento.contains(it.nombre)
         }
         val platosConAcompanamiento = recetasValidas.filter {
             platosQueRequierenAcompanamiento.contains(it.nombre)
         }
-        val sopasGuisos = recetasValidas.filter { it.categoria == "Sopa/Guiso" }
+        val sopasGuisos = recetasValidas.filter { it.obtenerCategoria() == "Sopa/Guiso" }
         
         // Obtener acompañamientos, postres y ensaladas disponibles
         val acompanamientos = todasLasRecetas.filter { 
-            it.categoria == "Acompañamiento" && it.nombre != "Salsa Blanca"
+            it.obtenerCategoria() == "Acompañamiento" && it.nombre != "Salsa Blanca"
         }
-        val postres = todasLasRecetas.filter { it.categoria == "Postre" }
-        val ensaladas = todasLasRecetas.filter { it.categoria == "Ensalada" }
+        val postres = todasLasRecetas.filter { it.obtenerCategoria() == "Postre" }
+        val ensaladas = todasLasRecetas.filter { it.obtenerCategoria() == "Ensalada" }
         
         // Generar selección balanceada de 5 días
         val recetasSeleccionadas = mutableListOf<Receta>()
@@ -386,7 +386,7 @@ object MinutasRepository {
             nuevoId = "${platoPrincipal.id}_con_${acompanamiento.id}",  // ID único
             nuevoNombre = "${platoPrincipal.nombre} con ${acompanamiento.nombre}",
             nuevaDescripcion = "${platoPrincipal.descripcion}. Acompañado de ${acompanamiento.nombre.lowercase()}.",
-            nuevosIngredientes = platoPrincipal.ingredientes + listOf("--- Acompañamiento: ${acompanamiento.nombre} ---") + acompanamiento.ingredientes,
+            nuevosIngredientes = platoPrincipal.obtenerIngredientes() + listOf("--- Acompañamiento: ${acompanamiento.nombre} ---") + acompanamiento.obtenerIngredientes(),
             nuevaPreparacion = platoPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación del acompañamiento:") + acompanamiento.obtenerPasosPreparacion()
         )
         // Guardar en cache
@@ -402,7 +402,7 @@ object MinutasRepository {
             nuevoId = "${recetaPrincipal.id}_postre_${postre.id}",  // ID único
             nuevoNombre = "${recetaPrincipal.nombre} + ${postre.nombre}",
             nuevaDescripcion = "${recetaPrincipal.descripcion} Incluye postre: ${postre.nombre.lowercase()}.",
-            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("--- Postre: ${postre.nombre} ---") + postre.ingredientes,
+            nuevosIngredientes = recetaPrincipal.obtenerIngredientes() + listOf("--- Postre: ${postre.nombre} ---") + postre.obtenerIngredientes(),
             nuevaPreparacion = recetaPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación del postre:") + postre.obtenerPasosPreparacion()
         )
         // Guardar en cache
@@ -418,7 +418,7 @@ object MinutasRepository {
             nuevoId = "${recetaPrincipal.id}_ensalada_${ensalada.id}",  // ID único
             nuevoNombre = "${recetaPrincipal.nombre} + ${ensalada.nombre}",
             nuevaDescripcion = "${recetaPrincipal.descripcion} Acompañado de ${ensalada.nombre.lowercase()}.",
-            nuevosIngredientes = recetaPrincipal.ingredientes + listOf("--- Ensalada: ${ensalada.nombre} ---") + ensalada.ingredientes,
+            nuevosIngredientes = recetaPrincipal.obtenerIngredientes() + listOf("--- Ensalada: ${ensalada.nombre} ---") + ensalada.obtenerIngredientes(),
             nuevaPreparacion = recetaPrincipal.obtenerPasosPreparacion() + listOf("\nPreparación de la ensalada:") + ensalada.obtenerPasosPreparacion()
         )
         // Guardar en cache
@@ -544,6 +544,6 @@ object MinutasRepository {
      * @return Map con categorías y sus recetas
      */
     fun obtenerRecetasPorCategoria(): Map<String, List<Receta>> {
-        return obtenerRecetasSemanales().groupBy { it.categoria }
+        return obtenerRecetasSemanales().groupBy { it.obtenerCategoria() }
     }
 }

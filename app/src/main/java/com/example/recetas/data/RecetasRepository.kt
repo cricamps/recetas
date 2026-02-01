@@ -846,7 +846,7 @@ object RecetasRepository {
      * @return Lista de recetas de esa categoría
      */
     fun getRecetasPorCategoria(categoria: String): List<Receta> {
-        return recetas.filter { it.categoria == categoria }
+        return recetas.filter { it.obtenerCategoria() == categoria }
     }
     
     /**
@@ -854,7 +854,7 @@ object RecetasRepository {
      * @return Map con categorías como claves y listas de recetas como valores
      */
     fun getRecetasAgrupadas(): Map<String, List<Receta>> {
-        return recetas.groupBy { it.categoria }
+        return recetas.groupBy { it.obtenerCategoria() }
     }
     
     /**
@@ -862,7 +862,7 @@ object RecetasRepository {
      * @return Lista de categorías únicas
      */
     fun getCategorias(): List<String> {
-        return recetas.map { it.categoria }.distinct().sorted()
+        return recetas.map { it.obtenerCategoria() }.distinct().sorted()
     }
     
     /**

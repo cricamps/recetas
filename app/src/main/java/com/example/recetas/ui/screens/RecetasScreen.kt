@@ -85,7 +85,7 @@ fun RecetasScreen(
     
     // Agrupar recetas por categoría
     val recetasAgrupadas = remember(todasLasRecetas) {
-        todasLasRecetas.groupBy { it.categoria }.toSortedMap(compareBy {
+        todasLasRecetas.groupBy { it.obtenerCategoria() }.toSortedMap(compareBy {
             // Orden personalizado: Platos Principales primero, Postres al final
             when(it) {
                 "Plato Principal" -> 1

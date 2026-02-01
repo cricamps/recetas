@@ -29,11 +29,11 @@ class Receta(
     override val descripcion: String,
     private val tiempoPreparacion: String,
     private val dificultad: String,
-    val ingredientes: List<String> = emptyList(),
+    private val ingredientes: List<String> = emptyList(),
     private val preparacion: List<String> = emptyList(),
     private val infoNutricional: NutritionalInfo? = null,
-    val categoria: String = "Plato Principal",
-    val porciones: Int = 4
+    private val categoria: String = "Plato Principal",
+    private val porciones: Int = 4
 ) : FoodItem(
     id = id,
     nombre = nombre,
@@ -110,6 +110,18 @@ class Receta(
      * @return Lista de ingredientes
      */
     fun obtenerIngredientes(): List<String> = ingredientes
+    
+    /**
+     * Obtiene la categoría de la receta.
+     * @return Categoría (Plato Principal, Postre, Ensalada, etc.)
+     */
+    fun obtenerCategoria(): String = categoria
+    
+    /**
+     * Obtiene el número de porciones.
+     * @return Cantidad de porciones
+     */
+    fun obtenerPorciones(): Int = porciones
     
     /**
      * Obtiene el número de ingredientes.

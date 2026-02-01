@@ -32,12 +32,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.graphicsLayer
 import com.example.recetas.data.MinutasRepository
 import com.example.recetas.data.Receta
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import androidx.compose.animation.core.*
 
 /**
  * Pantalla que muestra la Minuta Semanal con 5 recetas.
@@ -216,12 +219,30 @@ private fun MinutaHeaderCard(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            // Animación de calendario simple
+            Box(
+                modifier = Modifier.size(120.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val infiniteTransition = rememberInfiniteTransition(label = "calendar")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 0.9f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1500, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+                Text(
+                    text = "📅",
+                    fontSize = 72.sp,
+                    modifier = Modifier.graphicsLayer { 
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                )
+            }
             
             Spacer(modifier = Modifier.height(12.dp))
             
