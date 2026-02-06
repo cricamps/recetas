@@ -11,15 +11,48 @@ import java.util.UUID
  */
 object UsuariosRepository {
     
+    // Mapa para almacenar códigos de recuperación temporales
+    // Key: email, Value: código de 6 dígitos
+    private val codigosRecuperacion = mutableMapOf<String, String>()
+    
     // Array mutable para almacenar usuarios registrados
     // Semana 4: Demuestra el uso de arrays dinámicos en Kotlin
+    // Semana 5: Array con 5 usuarios predefinidos según requisitos de la actividad sumativa 2
     private val usuarios = mutableListOf<Usuario>(
-        // Usuario de prueba predefinido
+        // Usuario 1 - Administrador
         Usuario(
             id = "1",
-            nombre = "Administrador",
-            email = "admin@recetas.cl",
-            password = "123456"
+            nombre = "María González",
+            email = "maria.gonzalez@recetas.cl",
+            password = "Maria2024!"
+        ),
+        // Usuario 2 - Usuario regular
+        Usuario(
+            id = "2",
+            nombre = "Carlos Muñoz",
+            email = "carlos.munoz@recetas.cl",
+            password = "Carlos123"
+        ),
+        // Usuario 3 - Usuario regular
+        Usuario(
+            id = "3",
+            nombre = "Ana Pérez",
+            email = "ana.perez@recetas.cl",
+            password = "Ana456"
+        ),
+        // Usuario 4 - Usuario regular
+        Usuario(
+            id = "4",
+            nombre = "Luis Fernández",
+            email = "luis.fernandez@recetas.cl",
+            password = "Luis789"
+        ),
+        // Usuario 5 - Usuario regular
+        Usuario(
+            id = "5",
+            nombre = "Sofía Rojas",
+            email = "sofia.rojas@recetas.cl",
+            password = "Sofia012"
         )
     )
     
@@ -99,5 +132,79 @@ object UsuariosRepository {
         val admin = usuarios.find { it.email == "admin@recetas.cl" }
         usuarios.clear()
         admin?.let { usuarios.add(it) }
+    }
+    
+    // ==================== RECUPERACIÓN DE CONTRASEÑA ====================
+    
+    /**
+     * Genera un código de recuperación de 6 dígitos y lo envía al email del usuario.
+     * En una app real, esto enviaría un email. Aquí solo lo almacenamos.
+     * 
+     * @param email Correo electrónico del usuario
+     * @return Código generado si el usuario existe, null si no existe
+     */
+    fun solicitarRecuperacionPassword(email: String): String? {
+        val usuario = buscarPorEmail(email)
+        
+        if (usuario != null) {
+            // Generar código aleatorio de 6 dígitos
+            val codigo = (100000..999999).random().toString()
+            
+            // Almacenar código asociado al email
+            codigosRecuperacion[email.lowercase()] = codigo
+            
+            // En una app real, aquí se enviaría el email
+            // Por ahora solo retornamos el código para mostrarlo en pantalla
+            return codigo
+        }
+        
+        return null
+    }
+    
+    /**
+     * Verifica si el código ingresado es correcto para el email dado.
+     * 
+     * @param email Correo electrónico del usuario
+     * @param codigo Código de 6 dígitos ingresado por el usuario
+     * @return true si el código es correcto, false en caso contrario
+     */
+    fun verificarCodigoRecuperacion(email: String, codigo: String): Boolean {
+        val codigoAlmacenado = codigosRecuperacion[email.lowercase()]
+        return codigoAlmacenado == codigo
+    }
+    
+    /**
+     * Cambia la contraseña del usuario después de verificar el código.
+     * 
+     * @param email Correo electrónico del usuario
+     * @param nuevaPassword Nueva contraseña
+     * @return true si se cambió exitosamente, false en caso contrario
+     */
+    fun cambiarPassword(email: String, nuevaPassword: String): Boolean {
+        val index = usuarios.indexOfFirst { it.email.equals(email, ignoreCase = true) }
+        
+        if (index != -1) {
+            // Crear nuevo usuario con la nueva contraseña
+            val usuarioActual = usuarios[index]
+            val usuarioActualizado = usuarioActual.copy(password = nuevaPassword)
+            
+            // Reemplazar en la lista
+            usuarios[index] = usuarioActualizado
+            
+            // Eliminar el código usado
+            codigosRecuperacion.remove(email.lowercase())
+            
+            return true
+        }
+        
+        return false
+    }
+    
+    /**
+     * Obtiene el código de recuperación para mostrar en modo debug.
+     * SOLO PARA DESARROLLO - Remover en producción.
+     */
+    fun obtenerCodigoDebug(email: String): String? {
+        return codigosRecuperacion[email.lowercase()]
     }
 }

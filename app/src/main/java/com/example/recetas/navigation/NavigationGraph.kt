@@ -92,6 +92,129 @@ fun NavigationGraph(
                     navController.navigate(Screen.Recetas.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
+                },
+                onForgotPassword = {
+                    navController.navigate(Screen.RecuperarPassword.route)
+                }
+            )
+        }
+        
+        // Pantalla de Recuperar Contraseña - Paso 1: Solicitar Email
+        composable(
+            route = Screen.RecuperarPassword.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
+        ) {
+            RecuperarPasswordScreen(
+                isDarkTheme = isDarkTheme.value,
+                fontScale = fontScale,
+                onBackToLogin = {
+                    navController.popBackStack()
+                },
+                onCodeSent = { email, codigo ->
+                    navController.navigate(Screen.VerificarCodigo.createRoute(email)) {
+                        // Pasar el código como argumento usando savedStateHandle
+                        navController.currentBackStackEntry?.savedStateHandle?.set("codigo", codigo)
+                    }
+                }
+            )
+        }
+        
+        // Pantalla de Verificar Código - Paso 2
+        composable(
+            route = Screen.VerificarCodigo.route,
+            arguments = listOf(
+                navArgument("email") { type = NavType.StringType }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val codigo = navController.previousBackStackEntry?.savedStateHandle?.get<String>("codigo") ?: ""
+            
+            VerificarCodigoScreen(
+                email = email,
+                codigoEnviado = codigo,
+                isDarkTheme = isDarkTheme.value,
+                fontScale = fontScale,
+                onBackToRecover = {
+                    navController.popBackStack()
+                },
+                onCodeVerified = {
+                    navController.navigate(Screen.NuevaPassword.createRoute(email)) {
+                        popUpTo(Screen.RecuperarPassword.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        // Pantalla de Nueva Contraseña - Paso 3 (Final)
+        composable(
+            route = Screen.NuevaPassword.route,
+            arguments = listOf(
+                navArgument("email") { type = NavType.StringType }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(400))
+            },
+            exitTransition = {
+                fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                fadeIn(tween(200))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(400))
+            }
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            
+            NuevaPasswordScreen(
+                email = email,
+                isDarkTheme = isDarkTheme.value,
+                fontScale = fontScale,
+                onPasswordChanged = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }

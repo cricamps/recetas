@@ -31,6 +31,8 @@ import com.example.recetas.ui.components.InstagramLogo
 import com.example.recetas.accessibility.*
 import androidx.compose.runtime.MutableState
 import com.example.recetas.data.UsuariosRepository
+import com.example.recetas.services.EmailService
+import kotlinx.coroutines.launch
 
 /**
  * Pantalla de Login mejorada con opción de registro
@@ -44,19 +46,21 @@ fun LoginScreenMejorada(
     onFontScaleChange: (FontScale) -> Unit,
     contrastMode: MutableState<ContrastMode>,
     onContrastModeChange: (ContrastMode) -> Unit,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
     
-    // Estado para alternar entre Login y Registro
+
     var isLoginMode by remember { mutableStateOf(true) }
     
-    // Estados para Login
+
     var loginEmail by remember { mutableStateOf("") }
     var loginPassword by remember { mutableStateOf("") }
     
-    // Estados para Registro
+
     var registerName by remember { mutableStateOf("") }
     var registerEmail by remember { mutableStateOf("") }
     var registerPassword by remember { mutableStateOf("") }
@@ -65,8 +69,10 @@ fun LoginScreenMejorada(
     var passwordVisible by remember { mutableStateOf(false) }
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var showSuccess by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
     
-    // Colores
+
     val backgroundColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color(0xFFFFF8E1)
     val cardColor = if (isDarkTheme) Color(0xFF2A2A2A) else Color(0xFFFFFBF0)
     val primaryRed = Color(0xFFD32F2F)
@@ -112,7 +118,7 @@ fun LoginScreenMejorada(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Logo
+
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -139,7 +145,7 @@ fun LoginScreenMejorada(
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
                 
-                // Tabs para Login / Registro
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -153,6 +159,7 @@ fun LoginScreenMejorada(
                         onClick = { 
                             isLoginMode = true
                             showError = false
+                            showSuccess = false
                         },
                         modifier = Modifier.weight(1f),
                         primaryColor = primaryRed
@@ -163,6 +170,7 @@ fun LoginScreenMejorada(
                         onClick = { 
                             isLoginMode = false
                             showError = false
+                            showSuccess = false
                         },
                         modifier = Modifier.weight(1f),
                         primaryColor = primaryRed
@@ -171,7 +179,7 @@ fun LoginScreenMejorada(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Card del formulario con animación
+
                 AnimatedContent(
                     targetState = isLoginMode,
                     transitionSpec = {
@@ -197,12 +205,19 @@ fun LoginScreenMejorada(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if (loginMode) {
-                                // FORMULARIO DE LOGIN
                                 LoginForm(
                                     email = loginEmail,
-                                    onEmailChange = { loginEmail = it; showError = false },
+                                    onEmailChange = { 
+                                        loginEmail = it
+                                        showError = false
+                                        showSuccess = false
+                                    },
                                     password = loginPassword,
-                                    onPasswordChange = { loginPassword = it; showError = false },
+                                    onPasswordChange = { 
+                                        loginPassword = it
+                                        showError = false
+                                        showSuccess = false
+                                    },
                                     passwordVisible = passwordVisible,
                                     onPasswordVisibilityChange = { passwordVisible = it },
                                     isDarkTheme = isDarkTheme,
@@ -221,10 +236,10 @@ fun LoginScreenMejorada(
                                             hapticError(context)
                                         }
                                     },
+                                    onForgotPassword = onForgotPassword,
                                     focusManager = focusManager
                                 )
                             } else {
-                                // FORMULARIO DE REGISTRO
                                 RegisterForm(
                                     name = registerName,
                                     onNameChange = { registerName = it; showError = false },
@@ -261,8 +276,31 @@ fun LoginScreenMejorada(
                                                 
                                                 if (nuevoUsuario != null) {
                                                     hapticSuccess(context)
-                                                    announceForAccessibility(context, "Cuenta creada exitosamente. Bienvenido ${nuevoUsuario.nombre}")
-                                                    onLoginSuccess()
+                                                    announceForAccessibility(context, "Cuenta creada exitosamente. Por favor inicia sesión")
+                                                    
+                                                    scope.launch {
+                                                        val emailEnviado = EmailService.enviarEmailBienvenida(
+                                                            nombre = nuevoUsuario.nombre,
+                                                            email = nuevoUsuario.email
+                                                        )
+                                                        
+                                                        if (emailEnviado) {
+                                                            announceForAccessibility(context, "Email de bienvenida enviado")
+                                                        }
+                                                    }
+                                                    
+                                                    showError = false
+                                                    showSuccess = true
+                                                    successMessage = "¡Cuenta creada! Revisa tu email 📧"
+                                                    
+                                                    isLoginMode = true
+                                                    loginEmail = registerEmail
+                                                    loginPassword = ""
+                                                    
+                                                    registerName = ""
+                                                    registerEmail = ""
+                                                    registerPassword = ""
+                                                    registerConfirmPassword = ""
                                                 } else {
                                                     showError = true
                                                     errorMessage = "El email ya está registrado"
@@ -275,7 +313,36 @@ fun LoginScreenMejorada(
                                 )
                             }
                             
-                            // Mensaje de error
+
+                            if (showSuccess) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "✅",
+                                            fontSize = 24.sp
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = successMessage,
+                                            color = Color(0xFF2E7D32),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                            
+
                             if (showError) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
@@ -286,7 +353,7 @@ fun LoginScreenMejorada(
                                 )
                             }
                             
-                            // Divider
+
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
                                 text = "o entra vía Redes Sociales",
@@ -295,12 +362,11 @@ fun LoginScreenMejorada(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             
-                            // Botones de redes sociales
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                // Facebook
                                 SocialButton(
                                     icon = "f",
                                     backgroundColor = Color(0xFF1877F2),
@@ -312,7 +378,6 @@ fun LoginScreenMejorada(
                                     }
                                 )
                                 
-                                // Instagram (logo real)
                                 InstagramLogo(
                                     onClick = {
                                         hapticSuccess(context)
@@ -321,7 +386,6 @@ fun LoginScreenMejorada(
                                     }
                                 )
                                 
-                                // Google
                                 SocialButton(
                                     icon = "G",
                                     backgroundColor = Color.White,
@@ -337,7 +401,6 @@ fun LoginScreenMejorada(
                                     fontSize = 34.sp
                                 )
                                 
-                                // X (Twitter)
                                 SocialButton(
                                     icon = "𝕏",
                                     backgroundColor = Color.Black,
@@ -355,7 +418,7 @@ fun LoginScreenMejorada(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Credenciales de prueba (solo en modo login)
+
                 if (isLoginMode) {
                     Text(
                         text = "Prueba con:\nadmin@recetas.cl / 123456",
@@ -403,11 +466,11 @@ fun LoginForm(
     onPasswordVisibilityChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
     onLogin: () -> Unit,
+    onForgotPassword: () -> Unit = {},
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
     val fieldColor = if (isDarkTheme) Color(0xFF3A3A3A) else Color(0xFFFFE4B5)
     val context = androidx.compose.ui.platform.LocalContext.current
-    var showPasswordResetDialog by remember { mutableStateOf(false) }
     
     OutlinedTextField(
         value = email,
@@ -489,7 +552,6 @@ fun LoginForm(
     
     Spacer(modifier = Modifier.height(8.dp))
     
-    // Botón de "Olvidé mi contraseña"
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
@@ -497,50 +559,17 @@ fun LoginForm(
         TextButton(
             onClick = {
                 hapticFeedback(context)
-                showPasswordResetDialog = true
+                announceForAccessibility(context, "Iniciando proceso de recuperación de contraseña")
+                onForgotPassword()
             }
         ) {
             Text(
                 text = "¿Olvidaste tu contraseña?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFD32F2F)
+                color = Color(0xFFD32F2F),
+                fontWeight = FontWeight.Medium
             )
         }
-    }
-    
-    // Diálogo de recuperación de contraseña
-    if (showPasswordResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showPasswordResetDialog = false },
-            title = { Text("🔑 Recuperar Contraseña") },
-            text = {
-                Column {
-                    Text("Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña.")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "Para propósitos de demo, contacta al administrador en:\nadmin@recetas.cl",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showPasswordResetDialog = false
-                        hapticSuccess(context)
-                        announceForAccessibility(context, "Solicitud de recuperación enviada")
-                    }
-                ) {
-                    Text("Entendido")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPasswordResetDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
     }
 }
 

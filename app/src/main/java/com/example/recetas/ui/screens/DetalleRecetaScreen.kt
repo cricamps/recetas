@@ -94,7 +94,10 @@ fun DetalleRecetaScreen(
                 title = { 
                     Text(
                         text = receta.nombre,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        softWrap = false,
+                        fontWeight = FontWeight.Bold
                     ) 
                 },
                 navigationIcon = {
@@ -108,7 +111,10 @@ fun DetalleRecetaScreen(
                 },
                 actions = {
                     // Botón de favorito
-                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                    IconButton(
+                        onClick = { isFavorite = !isFavorite },
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Icon(
                             imageVector = if (isFavorite) 
                                 Icons.Default.Favorite 
@@ -121,7 +127,8 @@ fun DetalleRecetaScreen(
                             tint = if (isFavorite) 
                                 MaterialTheme.colorScheme.error 
                             else 
-                                MaterialTheme.colorScheme.onSurface
+                                MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     
@@ -129,7 +136,7 @@ fun DetalleRecetaScreen(
                     ContrastModeControl(
                         contrastMode = contrastMode.value,
                         onContrastModeChange = onContrastModeChange,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                     
                     // Botón de tamaño de fuente
@@ -139,10 +146,14 @@ fun DetalleRecetaScreen(
                     )
                     
                     // Botón de tema
-                    IconButton(onClick = onThemeChange) {
+                    IconButton(
+                        onClick = onThemeChange,
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Text(
-                            text = if (isDarkTheme) "☀️" else "🌙",
-                            fontSize = 24.sp
+                            text = if (isDarkTheme) "☼" else "☾",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },

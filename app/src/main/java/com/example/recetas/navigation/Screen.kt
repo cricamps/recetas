@@ -43,4 +43,23 @@ sealed class Screen(val route: String) {
      * Implementa el requerimiento de la Semana 4.
      */
     object Minuta : Screen("minuta")
+    
+    /**
+     * Pantalla para recuperar contraseña - Paso 1: Solicitar email
+     */
+    object RecuperarPassword : Screen("recuperar_password")
+    
+    /**
+     * Pantalla para verificar código de recuperación - Paso 2
+     */
+    object VerificarCodigo : Screen("verificar_codigo/{email}") {
+        fun createRoute(email: String) = "verificar_codigo/$email"
+    }
+    
+    /**
+     * Pantalla para establecer nueva contraseña - Paso 3
+     */
+    object NuevaPassword : Screen("nueva_password/{email}") {
+        fun createRoute(email: String) = "nueva_password/$email"
+    }
 }

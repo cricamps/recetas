@@ -41,6 +41,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.example.recetas.animations.RecetaAnimations
 import com.example.recetas.ui.components.AnimatedFAB
 import com.example.recetas.ui.components.AnimatedIconButton
+import androidx.compose.material.icons.filled.Check
 
 /**
  * Pantalla principal que muestra la lista de recetas chilenas.
@@ -78,9 +79,26 @@ fun RecetasScreen(
     // Estado para la búsqueda de recetas
     var searchQuery by remember { mutableStateOf("") }
     
-    // Obtener recetas filtradas según la búsqueda
-    val todasLasRecetas = remember(searchQuery) {
+    // Estado para los filtros de categoría
+    var categoriasSeleccionadas by remember {
+        mutableStateOf(CategoriaFiltro.entries.toSet())
+    }
+    
+    // Obtener recetas filtradas según la búsqueda Y categorías
+    val todasLasRecetas = remember(searchQuery, categoriasSeleccionadas) {
+        val todasCategoriasSeleccionadas = categoriasSeleccionadas.size == CategoriaFiltro.entries.size
+        
         RecetasRepository.searchRecetas(searchQuery)
+            .filter { receta ->
+                if (todasCategoriasSeleccionadas) {
+                    // Si todas están seleccionadas, mostrar todas las recetas
+                    true
+                } else {
+                    // Si hay filtro específico, solo mostrar las que coinciden
+                    val categoria = receta.obtenerCategoria().toCategoriaFiltro()
+                    categoria != null && categoria in categoriasSeleccionadas
+                }
+            }
     }
     
     // Agrupar recetas por categoría
@@ -128,52 +146,57 @@ fun RecetasScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Recetas Chilenas",
+                        "Recetas",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        softWrap = false
                     ) 
                 },
                 actions = {
-                    // Botón de cerrar sesión
+                    // Botón de cerrar sesión (más pequeño)
                     IconButton(
                         onClick = {
-                            // Navegar de vuelta al login
                             navController.navigate("login") {
                                 popUpTo("recetas") { inclusive = true }
                             }
-                        }
+                        },
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
                             contentDescription = "Cerrar sesión",
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     
-                    // Botón de Minuta Semanal (Semana 4 - POO)
+                    // Botón de Minuta Semanal
                     IconButton(
                         onClick = {
                             navController.navigate(Screen.Minuta.route)
-                        }
+                        },
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = "Minuta Semanal",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     
                     // Botón de navegación por voz
                     VoiceNavigationIconButton(
                         voiceManager = voiceManager,
-                        modifier = Modifier.padding(end = 4.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                     
                     // Control de contraste
                     ContrastModeControl(
                         contrastMode = contrastMode.value,
                         onContrastModeChange = onContrastModeChange,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                     
                     // Botón de tamaño de fuente
@@ -183,10 +206,14 @@ fun RecetasScreen(
                     )
                     
                     // Botón para cambiar tema
-                    IconButton(onClick = onThemeChange) {
+                    IconButton(
+                        onClick = onThemeChange,
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Text(
-                            text = if (isDarkTheme) "☀️" else "🌙",
-                            fontSize = 24.sp
+                            text = if (isDarkTheme) "☼" else "☾",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },
@@ -223,6 +250,23 @@ fun RecetasScreen(
                     .padding(16.dp)
             )
             
+            // Filtros de categorías
+            FiltrosCategorias(
+                categoriasSeleccionadas = categoriasSeleccionadas,
+                onCategoriaToggle = { categoria ->
+                    // Evitar deseleccionar si es la única categoría seleccionada
+                    if (categoria in categoriasSeleccionadas) {
+                        // Solo deseleccionar si hay más de una categoría seleccionada
+                        if (categoriasSeleccionadas.size > 1) {
+                            categoriasSeleccionadas = categoriasSeleccionadas - categoria
+                        }
+                    } else {
+                        categoriasSeleccionadas = categoriasSeleccionadas + categoria
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
             // Banner destacado para la Minuta Semanal
             Card(
                 modifier = Modifier
@@ -253,15 +297,17 @@ fun RecetasScreen(
                         )
                         Column {
                             Text(
-                                "📅 Minuta Semanal",
+                                "Minuta Semanal",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1
                             )
                             Text(
-                                "5 recetas nuevas esta semana",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                "5 recetas esta semana",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                maxLines = 1
                             )
                         }
                     }
@@ -335,13 +381,13 @@ fun CategoryHeader(
     categoria: String,
     cantidad: Int
 ) {
-    val (icono, color) = when(categoria) {
-        "Plato Principal" -> "🍲" to MaterialTheme.colorScheme.primary
-        "Sopa/Guiso" -> "🍜" to MaterialTheme.colorScheme.secondary
-        "Acompañamiento" -> "🥗" to MaterialTheme.colorScheme.tertiary
-        "Postre" -> "🍰" to MaterialTheme.colorScheme.error
-        "Ensalada" -> "🥗" to MaterialTheme.colorScheme.tertiary
-        else -> "🍽️" to MaterialTheme.colorScheme.primary
+    val color = when(categoria) {
+        "Plato Principal" -> MaterialTheme.colorScheme.primary
+        "Sopa/Guiso" -> MaterialTheme.colorScheme.secondary
+        "Acompañamiento" -> MaterialTheme.colorScheme.tertiary
+        "Postre" -> MaterialTheme.colorScheme.error
+        "Ensalada" -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.primary
     }
     
     Card(
@@ -360,21 +406,12 @@ fun CategoryHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = icono,
-                    fontSize = 28.sp
-                )
-                Text(
-                    text = categoria,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = color
-                )
-            }
+            Text(
+                text = categoria,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
             
             Surface(
                 shape = RoundedCornerShape(12.dp),
@@ -417,22 +454,6 @@ fun SearchBar(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Buscar"
             )
-        },
-        trailingIcon = {
-            // Botón TTS animado para personas con discapacidad del habla
-            if (searchQuery.isNotEmpty()) {
-                AnimatedIconButton(
-                    onClick = {
-                        // Hablar el texto de búsqueda
-                        hablarTexto(context, "Buscando: $searchQuery")
-                    }
-                ) {
-                    Text(
-                        text = "🔊",
-                        fontSize = 20.sp
-                    )
-                }
-            }
         },
         singleLine = true,
         shape = RoundedCornerShape(28.dp)
@@ -533,7 +554,9 @@ fun RecetaCard(
                     fontSize = 20.scaledSp(),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    softWrap = true
                     )
                     
                     // Botón TTS animado para decir el nombre de la receta
@@ -544,8 +567,9 @@ fun RecetaCard(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Text(
-                            text = "🔊",
-                            fontSize = 16.sp
+                            text = "♫",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -566,19 +590,12 @@ fun RecetaCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     InfoChip(
-                        icon = "⏱️",
                         text = receta.obtenerTiempoPreparacion()
                     )
                     InfoChip(
-                        icon = when(receta.obtenerNivelDificultad()) {
-                            "Fácil" -> "✅"
-                            "Media" -> "⚠️"
-                            else -> "🔥"
-                        },
                         text = receta.obtenerNivelDificultad()
                     )
                     InfoChip(
-                        icon = "🇨🇱",
                         text = receta.origen
                     )
                 }
@@ -608,28 +625,24 @@ fun RecetaCard(
 }
 
 /**
- * Chip informativo con icono y texto.
+ * Chip informativo con texto.
  * 
- * @param icon Emoji o texto del icono
  * @param text Texto a mostrar
  */
 @Composable
 fun InfoChip(
-    icon: String,
     text: String
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
     ) {
         Text(
-            text = icon,
-            fontSize = 14.sp
-        )
-        Text(
             text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.Medium
         )
     }
 }

@@ -872,18 +872,15 @@ object RecetasRepository {
      */
     fun getRecetaById(id: String): Receta? = recetas.find { it.id == id }
     
-    /**
-     * Busca recetas que coincidan con un término de búsqueda.
-     * @param query Término de búsqueda
-     * @return Lista de recetas que coinciden con la búsqueda
-     */
+    // Busca recetas por nombre, descripción o ingredientes
     fun searchRecetas(query: String): List<Receta> {
         return if (query.isBlank()) {
             recetas
         } else {
             recetas.filter { receta ->
                 receta.nombre.contains(query, ignoreCase = true) ||
-                receta.descripcion.contains(query, ignoreCase = true)
+                receta.descripcion.contains(query, ignoreCase = true) ||
+                receta.obtenerIngredientes().any { it.contains(query, ignoreCase = true) }
             }
         }
     }
