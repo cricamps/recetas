@@ -2,7 +2,7 @@
 
 **Curso:** DSY2204 - Desarrollo de Aplicaciones Móviles  
 **Estudiante:** Cristobal Camps  
-**Semana:** 5 - Funcionalidades Avanzadas en Kotlin  
+**Semana:** 6 - Funcionalidades Avanzadas en Kotlin  
 **Fecha:** Febrero 2026
 
 ---

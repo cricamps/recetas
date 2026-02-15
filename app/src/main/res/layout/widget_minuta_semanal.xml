@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_minuta_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <TextView
+        android:id="@+id/widget_minuta_titulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Minuta Semanal"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:id="@+id/widget_dia_actual"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hoy: Lunes"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:id="@+id/widget_receta_hoy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cazuela de Vacuno"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>

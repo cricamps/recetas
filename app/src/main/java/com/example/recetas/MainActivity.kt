@@ -94,6 +94,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Manejar intent desde widgets
+        val widgetAction = intent.getStringExtra("widget_action")
+        val fromWidget = intent.getBooleanExtra("from_widget", false)
+        
         setContent {
             val context = LocalContext.current
             
@@ -139,7 +144,9 @@ class MainActivity : ComponentActivity() {
                             onContrastModeChange = { newMode ->
                                 contrastMode.value = newMode
                                 ContrastManager.saveContrastMode(context, newMode)
-                            }
+                            },
+                            widgetAction = widgetAction,
+                            fromWidget = fromWidget
                         )
                     }
                 }
@@ -173,7 +180,9 @@ fun RecetasApp(
     fontScale: MutableState<FontScale>,
     onFontScaleChange: (FontScale) -> Unit,
     contrastMode: MutableState<ContrastMode>,
-    onContrastModeChange: (ContrastMode) -> Unit
+    onContrastModeChange: (ContrastMode) -> Unit,
+    widgetAction: String? = null,
+    fromWidget: Boolean = false
 ) {
     // Crear el NavController - API principal de Navigation
     // rememberNavController() asegura que se mantenga durante recomposiciones

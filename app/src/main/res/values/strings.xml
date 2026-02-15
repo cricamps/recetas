@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Recetas</string>
+    
+    <!-- Widget Strings -->
+    <string name="widget_receta_del_dia_description">Muestra la receta del día en tu pantalla de inicio</string>
+    <string name="widget_receta_nombre">Receta del Día</string>
+    <string name="widget_minuta_semanal_description">Muestra tu minuta semanal de recetas chilenas</string>
+    <string name="widget_estadisticas_description">Estadísticas de tus recetas guardadas y cocinadas</string>
 </resources>

@@ -16,6 +16,11 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     
     /**
+     * Pantalla de registro de nuevo usuario - Semana 6
+     */
+    object Registro : Screen("registro")
+    
+    /**
      * Pantalla principal con la lista de recetas.
      */
     object Recetas : Screen("recetas")

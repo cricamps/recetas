@@ -66,6 +66,12 @@ dependencies {
     // Accompanist para efectos adicionales
     implementation("com.google.accompanist:accompanist-placeholder-material:0.32.0")
     
+    // Palette para colores adaptativos - Semana 6
+    implementation("androidx.palette:palette-ktx:1.0.0")
+    
+    // Coil para carga de imágenes (necesario para Palette)
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

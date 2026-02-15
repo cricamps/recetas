@@ -33,6 +33,52 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Content Provider para compartir datos de recetas -->
+        <!-- Comentado temporalmente - usar frontend.ContentProviders en su lugar -->
+        <!--
+        <provider
+            android:name=".providers.RecetasContentProvider"
+            android:authorities="com.example.recetas.provider"
+            android:exported="true"
+            android:grantUriPermissions="true" />
+        -->
+        
+        <!-- Widget de Receta del Día -->
+        <receiver
+            android:name=".frontend.RecetaDelDiaWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_receta_del_dia_info" />
+        </receiver>
+        
+        <!-- Widget de Minuta Semanal -->
+        <receiver
+            android:name=".frontend.MinutaSemanalWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_minuta_semanal_info" />
+        </receiver>
+        
+        <!-- Widget de Estadísticas -->
+        <receiver
+            android:name=".frontend.EstadisticasWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_estadisticas_info" />
+        </receiver>
     </application>
 
 </manifest>
