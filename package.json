@@ -1,0 +1,16 @@
+{
+  "name": "recipe-widget",
+  "version": "1.0.0",
+  "description": "Widget de recetas con Tailwind CSS",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "npm run build:css"
+  },
+  "keywords": ["tailwind", "widget", "recipes"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^4.1.18"
+  }
+}
