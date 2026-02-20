@@ -27,15 +27,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.recetas.ui.components.InstagramLogo
 import com.example.recetas.accessibility.*
 import androidx.compose.runtime.MutableState
-import com.example.recetas.data.UsuariosRepository
-import com.example.recetas.services.EmailService
-import kotlinx.coroutines.launch
+import com.example.recetas.firebase.AuthViewModel
 
 /**
- * Pantalla de Login mejorada con opción de registro
+ * Pantalla de Login conectada con Firebase Authentication.
+ * Maneja login, registro y recuperación de contraseña con Firebase.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,36 +47,46 @@ fun LoginScreenMejorada(
     contrastMode: MutableState<ContrastMode>,
     onContrastModeChange: (ContrastMode) -> Unit,
     onLoginSuccess: () -> Unit,
-    onForgotPassword: () -> Unit = {}
+    onForgotPassword: () -> Unit = {},
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val scope = rememberCoroutineScope()
-    
+    val uiState by authViewModel.uiState.collectAsState()
 
     var isLoginMode by remember { mutableStateOf(true) }
-    
 
     var loginEmail by remember { mutableStateOf("") }
     var loginPassword by remember { mutableStateOf("") }
-    
 
     var registerName by remember { mutableStateOf("") }
     var registerEmail by remember { mutableStateOf("") }
     var registerPassword by remember { mutableStateOf("") }
     var registerConfirmPassword by remember { mutableStateOf("") }
-    
+
     var passwordVisible by remember { mutableStateOf(false) }
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    var showSuccess by remember { mutableStateOf(false) }
-    var successMessage by remember { mutableStateOf("") }
-    
+    var localError by remember { mutableStateOf("") }
 
     val backgroundColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color(0xFFFFF8E1)
     val cardColor = if (isDarkTheme) Color(0xFF2A2A2A) else Color(0xFFFFFBF0)
     val primaryRed = Color(0xFFD32F2F)
-    
+
+    // Navegar cuando login sea exitoso
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            hapticSuccess(context)
+            announceForAccessibility(context, "Bienvenido")
+            onLoginSuccess()
+        }
+    }
+
+    // Mostrar error de Firebase
+    LaunchedEffect(uiState.errorMessage) {
+        if (uiState.errorMessage != null) {
+            hapticError(context)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,9 +108,7 @@ fun LoginScreenMejorada(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         },
         containerColor = backgroundColor
@@ -118,7 +126,7 @@ fun LoginScreenMejorada(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
+                // Logo
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -128,24 +136,24 @@ fun LoginScreenMejorada(
                 ) {
                     Text(text = "🍲", fontSize = 80.sp)
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
                     text = "Recetas Chilenas",
                     fontSize = 32.scaledSp(),
                     fontWeight = FontWeight.Bold,
                     color = if (isDarkTheme) Color.White else Color(0xFF4A4A4A)
                 )
-                
+
                 Text(
                     text = "Sabores tradicionales de Chile",
                     fontSize = 16.scaledSp(),
                     color = if (isDarkTheme) Color.LightGray else Color.Gray,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
-                
 
+                // Tabs Login / Registro
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -156,10 +164,10 @@ fun LoginScreenMejorada(
                     TabButton(
                         text = "Iniciar Sesión",
                         isSelected = isLoginMode,
-                        onClick = { 
+                        onClick = {
                             isLoginMode = true
-                            showError = false
-                            showSuccess = false
+                            localError = ""
+                            authViewModel.limpiarMensajes()
                         },
                         modifier = Modifier.weight(1f),
                         primaryColor = primaryRed
@@ -167,19 +175,19 @@ fun LoginScreenMejorada(
                     TabButton(
                         text = "Registrarse",
                         isSelected = !isLoginMode,
-                        onClick = { 
+                        onClick = {
                             isLoginMode = false
-                            showError = false
-                            showSuccess = false
+                            localError = ""
+                            authViewModel.limpiarMensajes()
                         },
                         modifier = Modifier.weight(1f),
                         primaryColor = primaryRed
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Formulario animado
                 AnimatedContent(
                     targetState = isLoginMode,
                     transitionSpec = {
@@ -205,116 +213,69 @@ fun LoginScreenMejorada(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if (loginMode) {
+                                // ===== FORMULARIO LOGIN =====
                                 LoginForm(
                                     email = loginEmail,
-                                    onEmailChange = { 
+                                    onEmailChange = {
                                         loginEmail = it
-                                        showError = false
-                                        showSuccess = false
+                                        localError = ""
+                                        authViewModel.limpiarMensajes()
                                     },
                                     password = loginPassword,
-                                    onPasswordChange = { 
+                                    onPasswordChange = {
                                         loginPassword = it
-                                        showError = false
-                                        showSuccess = false
+                                        localError = ""
+                                        authViewModel.limpiarMensajes()
                                     },
                                     passwordVisible = passwordVisible,
                                     onPasswordVisibilityChange = { passwordVisible = it },
                                     isDarkTheme = isDarkTheme,
+                                    isLoading = uiState.isLoading,
                                     onLogin = {
-                                        if (loginEmail.isBlank() || loginPassword.isBlank()) {
-                                            showError = true
-                                            errorMessage = "Completa todos los campos"
-                                        } else if (UsuariosRepository.autenticarUsuario(loginEmail, loginPassword)) {
-                                            val usuario = UsuariosRepository.buscarPorEmail(loginEmail)
-                                            hapticSuccess(context)
-                                            announceForAccessibility(context, "Bienvenido ${usuario?.nombre ?: ""}")
-                                            onLoginSuccess()
-                                        } else {
-                                            showError = true
-                                            errorMessage = "Credenciales incorrectas"
-                                            hapticError(context)
+                                        when {
+                                            loginEmail.isBlank() || loginPassword.isBlank() ->
+                                                localError = "Completa todos los campos"
+                                            loginPassword.length < 6 ->
+                                                localError = "La contraseña debe tener al menos 6 caracteres"
+                                            else -> authViewModel.login(loginEmail, loginPassword)
                                         }
                                     },
                                     onForgotPassword = onForgotPassword,
                                     focusManager = focusManager
                                 )
                             } else {
+                                // ===== FORMULARIO REGISTRO =====
                                 RegisterForm(
                                     name = registerName,
-                                    onNameChange = { registerName = it; showError = false },
+                                    onNameChange = { registerName = it; localError = ""; authViewModel.limpiarMensajes() },
                                     email = registerEmail,
-                                    onEmailChange = { registerEmail = it; showError = false },
+                                    onEmailChange = { registerEmail = it; localError = ""; authViewModel.limpiarMensajes() },
                                     password = registerPassword,
-                                    onPasswordChange = { registerPassword = it; showError = false },
+                                    onPasswordChange = { registerPassword = it; localError = ""; authViewModel.limpiarMensajes() },
                                     confirmPassword = registerConfirmPassword,
-                                    onConfirmPasswordChange = { registerConfirmPassword = it; showError = false },
+                                    onConfirmPasswordChange = { registerConfirmPassword = it; localError = ""; authViewModel.limpiarMensajes() },
                                     passwordVisible = passwordVisible,
                                     onPasswordVisibilityChange = { passwordVisible = it },
                                     isDarkTheme = isDarkTheme,
+                                    isLoading = uiState.isLoading,
                                     onRegister = {
                                         when {
-                                            registerName.isBlank() || registerEmail.isBlank() || 
-                                            registerPassword.isBlank() || registerConfirmPassword.isBlank() -> {
-                                                showError = true
-                                                errorMessage = "Completa todos los campos"
-                                            }
-                                            registerPassword != registerConfirmPassword -> {
-                                                showError = true
-                                                errorMessage = "Las contraseñas no coinciden"
-                                            }
-                                            registerPassword.length < 6 -> {
-                                                showError = true
-                                                errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                                            }
-                                            else -> {
-                                                val nuevoUsuario = UsuariosRepository.registrarUsuario(
-                                                    nombre = registerName,
-                                                    email = registerEmail,
-                                                    password = registerPassword
-                                                )
-                                                
-                                                if (nuevoUsuario != null) {
-                                                    hapticSuccess(context)
-                                                    announceForAccessibility(context, "Cuenta creada exitosamente. Por favor inicia sesión")
-                                                    
-                                                    scope.launch {
-                                                        val emailEnviado = EmailService.enviarEmailBienvenida(
-                                                            nombre = nuevoUsuario.nombre,
-                                                            email = nuevoUsuario.email
-                                                        )
-                                                        
-                                                        if (emailEnviado) {
-                                                            announceForAccessibility(context, "Email de bienvenida enviado")
-                                                        }
-                                                    }
-                                                    
-                                                    showError = false
-                                                    showSuccess = true
-                                                    successMessage = "¡Cuenta creada! Revisa tu email 📧"
-                                                    
-                                                    isLoginMode = true
-                                                    loginEmail = registerEmail
-                                                    loginPassword = ""
-                                                    
-                                                    registerName = ""
-                                                    registerEmail = ""
-                                                    registerPassword = ""
-                                                    registerConfirmPassword = ""
-                                                } else {
-                                                    showError = true
-                                                    errorMessage = "El email ya está registrado"
-                                                    hapticError(context)
-                                                }
-                                            }
+                                            registerName.isBlank() || registerEmail.isBlank() ||
+                                            registerPassword.isBlank() || registerConfirmPassword.isBlank() ->
+                                                localError = "Completa todos los campos"
+                                            registerPassword != registerConfirmPassword ->
+                                                localError = "Las contraseñas no coinciden"
+                                            registerPassword.length < 6 ->
+                                                localError = "La contraseña debe tener al menos 6 caracteres"
+                                            else -> authViewModel.registrar(registerName, registerEmail, registerPassword)
                                         }
                                     },
                                     focusManager = focusManager
                                 )
                             }
-                            
 
-                            if (showSuccess) {
+                            // Mensaje de éxito Firebase
+                            if (uiState.successMessage != null) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
@@ -327,13 +288,10 @@ fun LoginScreenMejorada(
                                         modifier = Modifier.padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "✅",
-                                            fontSize = 24.sp
-                                        )
+                                        Text(text = "✅", fontSize = 24.sp)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = successMessage,
+                                            text = uiState.successMessage!!,
                                             color = Color(0xFF2E7D32),
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.Bold
@@ -341,18 +299,27 @@ fun LoginScreenMejorada(
                                     }
                                 }
                             }
-                            
 
-                            if (showError) {
+                            // Error local (validación) o de Firebase
+                            val errorToShow = localError.ifEmpty { uiState.errorMessage ?: "" }
+                            if (errorToShow.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "❌ $errorMessage",
+                                    text = "❌ $errorToShow",
                                     color = primaryRed,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            
+
+                            // Indicador de carga Firebase
+                            if (uiState.isLoading) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                CircularProgressIndicator(
+                                    color = primaryRed,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
@@ -361,8 +328,8 @@ fun LoginScreenMejorada(
                                 color = if (isDarkTheme) Color.Gray else Color(0xFF8D6E63)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            
 
+                            // Botones redes sociales (modo demo)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -377,7 +344,6 @@ fun LoginScreenMejorada(
                                         onLoginSuccess()
                                     }
                                 )
-                                
                                 InstagramLogo(
                                     onClick = {
                                         hapticSuccess(context)
@@ -385,7 +351,6 @@ fun LoginScreenMejorada(
                                         onLoginSuccess()
                                     }
                                 )
-                                
                                 SocialButton(
                                     icon = "G",
                                     backgroundColor = Color.White,
@@ -400,7 +365,6 @@ fun LoginScreenMejorada(
                                     borderColor = Color(0xFFDDDDDD),
                                     fontSize = 34.sp
                                 )
-                                
                                 SocialButton(
                                     icon = "𝕏",
                                     backgroundColor = Color.Black,
@@ -415,13 +379,12 @@ fun LoginScreenMejorada(
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
 
                 if (isLoginMode) {
                     Text(
-                        text = "Prueba con:\nadmin@recetas.cl / 123456",
+                        text = "Regístrate con tu correo real\npara usar Firebase Auth",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (isDarkTheme) Color.Gray else Color(0xFF8D6E63),
                         textAlign = TextAlign.Center
@@ -465,13 +428,14 @@ fun LoginForm(
     passwordVisible: Boolean,
     onPasswordVisibilityChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
+    isLoading: Boolean = false,
     onLogin: () -> Unit,
     onForgotPassword: () -> Unit = {},
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
     val fieldColor = if (isDarkTheme) Color(0xFF3A3A3A) else Color(0xFFFFE4B5)
-    val context = androidx.compose.ui.platform.LocalContext.current
-    
+    val context = LocalContext.current
+
     OutlinedTextField(
         value = email,
         onValueChange = onEmailChange,
@@ -492,9 +456,9 @@ fun LoginForm(
             onNext = { focusManager.moveFocus(FocusDirection.Down) }
         )
     )
-    
+
     Spacer(modifier = Modifier.height(16.dp))
-    
+
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
@@ -502,16 +466,10 @@ fun LoginForm(
         leadingIcon = { Text("🔒", fontSize = 20.sp) },
         trailingIcon = {
             IconButton(onClick = { onPasswordVisibilityChange(!passwordVisible) }) {
-                Text(
-                    text = if (passwordVisible) "👁️" else "👁️‍🗨️",
-                    fontSize = 20.sp
-                )
+                Text(text = if (passwordVisible) "👁️" else "👁️‍🗨️", fontSize = 20.sp)
             }
         },
-        visualTransformation = if (passwordVisible) 
-            VisualTransformation.None 
-        else 
-            PasswordVisualTransformation(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
@@ -524,42 +482,31 @@ fun LoginForm(
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(
-            onDone = { 
+            onDone = {
                 focusManager.clearFocus()
                 onLogin()
             }
         )
     )
-    
+
     Spacer(modifier = Modifier.height(24.dp))
-    
+
     Button(
         onClick = onLogin,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFD32F2F)
-        ),
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        enabled = !isLoading,
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(
-            text = "Iniciar Sesión",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = "Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
-    
+
     Spacer(modifier = Modifier.height(8.dp))
-    
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
-    ) {
+
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         TextButton(
             onClick = {
                 hapticFeedback(context)
-                announceForAccessibility(context, "Iniciando proceso de recuperación de contraseña")
                 onForgotPassword()
             }
         ) {
@@ -573,9 +520,6 @@ fun LoginForm(
     }
 }
 
-/**
- * Botón circular para login con redes sociales
- */
 @Composable
 fun SocialButton(
     icon: String,
@@ -588,30 +532,12 @@ fun SocialButton(
     fontSize: androidx.compose.ui.unit.TextUnit = 28.sp
 ) {
     val context = LocalContext.current
-    
+
     Box(
         modifier = Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(backgroundColor)
-            .then(
-                if (hasBorder) {
-                    Modifier.then(
-                        Modifier
-                            .padding(0.dp)
-                            .then(
-                                Modifier.background(
-                                    androidx.compose.ui.graphics.Brush.linearGradient(
-                                        colors = listOf(borderColor, borderColor)
-                                    ),
-                                    CircleShape
-                                )
-                            )
-                            .padding(2.dp)
-                            .background(backgroundColor, CircleShape)
-                    )
-                } else Modifier
-            ),
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         IconButton(
@@ -644,11 +570,12 @@ fun RegisterForm(
     passwordVisible: Boolean,
     onPasswordVisibilityChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
+    isLoading: Boolean = false,
     onRegister: () -> Unit,
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
     val fieldColor = if (isDarkTheme) Color(0xFF3A3A3A) else Color(0xFFFFE4B5)
-    
+
     OutlinedTextField(
         value = name,
         onValueChange = onNameChange,
@@ -661,17 +588,12 @@ fun RegisterForm(
             unfocusedContainerColor = fieldColor
         ),
         shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
     )
-    
+
     Spacer(modifier = Modifier.height(12.dp))
-    
+
     OutlinedTextField(
         value = email,
         onValueChange = onEmailChange,
@@ -684,17 +606,12 @@ fun RegisterForm(
             unfocusedContainerColor = fieldColor
         ),
         shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
     )
-    
+
     Spacer(modifier = Modifier.height(12.dp))
-    
+
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
@@ -702,16 +619,10 @@ fun RegisterForm(
         leadingIcon = { Text("🔒", fontSize = 20.sp) },
         trailingIcon = {
             IconButton(onClick = { onPasswordVisibilityChange(!passwordVisible) }) {
-                Text(
-                    text = if (passwordVisible) "👁️" else "👁️‍🗨️",
-                    fontSize = 20.sp
-                )
+                Text(text = if (passwordVisible) "👁️" else "👁️‍🗨️", fontSize = 20.sp)
             }
         },
-        visualTransformation = if (passwordVisible) 
-            VisualTransformation.None 
-        else 
-            PasswordVisualTransformation(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
@@ -719,26 +630,18 @@ fun RegisterForm(
             unfocusedContainerColor = fieldColor
         ),
         shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
     )
-    
+
     Spacer(modifier = Modifier.height(12.dp))
-    
+
     OutlinedTextField(
         value = confirmPassword,
         onValueChange = onConfirmPasswordChange,
         label = { Text("Confirmar Contraseña") },
         leadingIcon = { Text("🔒", fontSize = 20.sp) },
-        visualTransformation = if (passwordVisible) 
-            VisualTransformation.None 
-        else 
-            PasswordVisualTransformation(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
@@ -746,34 +649,19 @@ fun RegisterForm(
             unfocusedContainerColor = fieldColor
         ),
         shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = { 
-                focusManager.clearFocus()
-                onRegister()
-            }
-        )
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); onRegister() })
     )
-    
+
     Spacer(modifier = Modifier.height(24.dp))
-    
+
     Button(
         onClick = onRegister,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFD32F2F)
-        ),
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        enabled = !isLoading,
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(
-            text = "Crear Cuenta",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = "Crear Cuenta", fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }

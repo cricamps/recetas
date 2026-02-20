@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="400dp"
+    android:height="200dp"
+    android:viewportWidth="400"
+    android:viewportHeight="200">
+
+    <!-- Fondo degradado cálido (terracota/crema) -->
+    <path
+        android:fillColor="#FFF3E0"
+        android:pathData="M0,0 L400,0 L400,200 L0,200 Z"/>
+
+    <!-- Olla grande (cuerpo) -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M140,80 Q140,160 200,165 Q260,160 260,80 Z"/>
+
+    <!-- Olla (boca) -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M135,80 Q200,95 265,80 Q200,65 135,80 Z"/>
+
+    <!-- Tapa de la olla -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M145,72 Q200,60 255,72 Q200,84 145,72 Z"/>
+
+    <!-- Perilla de la tapa -->
+    <path
+        android:fillColor="#546E7A"
+        android:pathData="M196,58 Q200,52 204,58 Q200,64 196,58 Z"/>
+
+    <!-- Asa izquierda -->
+    <path
+        android:fillColor="#90A4AE"
+        android:strokeColor="#78909C"
+        android:strokeWidth="2"
+        android:pathData="M140,90 Q118,88 115,100 Q118,112 140,110"/>
+
+    <!-- Asa derecha -->
+    <path
+        android:fillColor="#90A4AE"
+        android:strokeColor="#78909C"
+        android:strokeWidth="2"
+        android:pathData="M260,90 Q282,88 285,100 Q282,112 260,110"/>
+
+    <!-- Vapor izquierdo -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#BDBDBD"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M178,62 Q174,52 178,42 Q182,32 178,22"/>
+
+    <!-- Vapor centro -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#BDBDBD"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M200,58 Q196,48 200,38 Q204,28 200,18"/>
+
+    <!-- Vapor derecho -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#BDBDBD"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M222,62 Q218,52 222,42 Q226,32 222,22"/>
+
+    <!-- Zanahoria izquierda -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M155,75 Q158,68 162,75 Q158,82 155,75 Z"/>
+
+    <!-- Zanahoria derecha -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M238,75 Q241,68 245,75 Q241,82 238,75 Z"/>
+
+    <!-- Papa izquierda -->
+    <path
+        android:fillColor="#FDD835"
+        android:pathData="M168,78 Q174,70 180,78 Q174,86 168,78 Z"/>
+
+    <!-- Papa derecha -->
+    <path
+        android:fillColor="#FDD835"
+        android:pathData="M220,78 Q226,70 232,78 Q226,86 220,78 Z"/>
+
+    <!-- Hoja/hierbas -->
+    <path
+        android:fillColor="#66BB6A"
+        android:pathData="M195,74 Q200,65 205,74 Q200,80 195,74 Z"/>
+
+    <!-- Mesa / superficie -->
+    <path
+        android:fillColor="#FFCC80"
+        android:pathData="M80,162 L320,162 L320,200 L80,200 Z"/>
+
+    <!-- Borde mesa -->
+    <path
+        android:fillColor="#FFA726"
+        android:pathData="M80,162 L320,162 L320,168 L80,168 Z"/>
+
+    <!-- Cuchara -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:strokeColor="#90A4AE"
+        android:strokeWidth="1.5"
+        android:pathData="M300,90 Q310,95 308,108 Q306,118 300,120 L298,155 Q299,158 297,158 Q295,158 296,155 L294,120 Q288,118 286,108 Q284,95 294,90 Z"/>
+
+    <!-- Tenedor -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M86,92 L88,130 Q89,133 91,133 Q93,133 94,130 L96,92 Z"/>
+    <!-- Dientes tenedor -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M86,92 L86,82 L87,82 L87,92 Z"/>
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M89,92 L89,82 L90,82 L90,92 Z"/>
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M92,92 L92,82 L93,82 L93,92 Z"/>
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M95,92 L95,82 L96,82 L96,92 Z"/>
+
+    <!-- Texto "Receta Chilena" -->
+    <path
+        android:fillColor="#E64A19"
+        android:pathData=""/>
+
+</vector>

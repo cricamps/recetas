@@ -1,7 +1,9 @@
 package com.example.recetas.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -11,10 +13,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.recetas.R
+import com.example.recetas.ui.components.RecetaImageMapper
 import com.example.recetas.accessibility.ContrastMode
 import com.example.recetas.accessibility.ContrastModeControl
 import com.example.recetas.accessibility.FontScale
@@ -172,8 +179,8 @@ fun DetalleRecetaScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Cabecera con información general
-            HeaderCard(receta = receta)
+            // Cabecera con información general e imagen real
+            HeaderCard(receta = receta, recetaId = recetaId)
             
             // Descripción
             DescriptionCard(descripcion = receta.descripcion)
@@ -194,9 +201,16 @@ fun DetalleRecetaScreen(
 
 /**
  * Tarjeta con la información general de la receta.
+ * Muestra la imagen real de la receta si está disponible en drawable.
  */
 @Composable
-fun HeaderCard(receta: com.example.recetas.data.Receta) {
+fun HeaderCard(
+    receta: com.example.recetas.data.Receta,
+    recetaId: String = receta.id
+) {
+    val context = LocalContext.current
+    val imageResId = RecetaImageMapper.getDrawableForReceta(context, recetaId)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -213,7 +227,20 @@ fun HeaderCard(receta: com.example.recetas.data.Receta) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Componente Image: imagen real de la receta (o placeholder si no está disponible)
+            Image(
+                painter = painterResource(id = imageResId),
+                contentDescription = "Imagen de ${receta.nombre}",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
             
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "977473329400",
+    "project_id": "recetas-chilenas-268df",
+    "storage_bucket": "recetas-chilenas-268df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977473329400:android:2944784e4bc23239f7830d",
+        "android_client_info": {
+          "package_name": "com.example.recetas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChKIPSsAwIj07z6uIzxjJyaqjccdB4_zo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

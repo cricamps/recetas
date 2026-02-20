@@ -34,15 +34,12 @@
             </intent-filter>
         </activity>
         
-        <!-- Content Provider para compartir datos de recetas -->
-        <!-- Comentado temporalmente - usar frontend.ContentProviders en su lugar -->
-        <!--
+        <!-- Content Provider para acceso a datos de recetas chilenas -->
         <provider
             android:name=".providers.RecetasContentProvider"
             android:authorities="com.example.recetas.provider"
-            android:exported="true"
+            android:exported="false"
             android:grantUriPermissions="true" />
-        -->
         
         <!-- Widget de Receta del Día -->
         <receiver
